@@ -4,8 +4,11 @@ import { Keyboard } from './utils/keyboard';
 import * as CANNON from 'cannon-es';
 import CannonDebugger from 'cannon-es-debugger';
 import { Bus } from './objects/Bus';
+import { defaultVehicleConfig } from './objects/Vehicle';
 
 Keyboard.initialize();
+
+// Initialization
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xdddddd);
@@ -21,18 +24,13 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-camera.position.set(0, 5, 15);
-// camera.position.z = -15;
-// camera.position.y = 5;
-
-const bus = new Bus();
-
-// camera.lookAt(new Vector3(0, 0, 0));
-
-const light = new THREE.AmbientLight(0x404040);
-scene.add(light);
+// Illumination setup
+const sun = new THREE.DirectionalLight(0xffffff, 0.4);
+sun.position.set(0, 50, 0);
+scene.add(sun);
 scene.add(new THREE.HemisphereLight(0xffffbb, 0x080820, 1));
 
+// Physics world setup
 const world = new CANNON.World({
     gravity: new CANNON.Vec3(0, -9.82, 0),
 });
@@ -40,11 +38,7 @@ const world = new CANNON.World({
 // Sweep and prune broadphase
 world.broadphase = new CANNON.SAPBroadphase(world);
 
-// Disable friction by default
-world.defaultContactMaterial.friction = 0;
-
-const cannonDbg = CannonDebugger(scene, world, {});
-
+// Create ground
 const groundGeometry: THREE.PlaneGeometry = new THREE.PlaneGeometry(100, 100);
 const groundMesh: THREE.Mesh = new THREE.Mesh(
     groundGeometry,
@@ -55,8 +49,7 @@ groundMesh.receiveShadow = true;
 scene.add(groundMesh);
 
 const groundMaterial = new CANNON.Material('groundMaterial');
-
-const groundShape = new CANNON.Plane()
+const groundShape = new CANNON.Plane();
 const groundBody = new CANNON.Body({
     mass: 0,
     material: groundMaterial,
@@ -68,9 +61,7 @@ groundBody.position.set(0, -5, 0);
 groundMesh.position.set(0, -5, 0);
 
 const wheelToGround = new CANNON.ContactMaterial(
-    // @ts-ignore
-    bus.vehicle.wheelBodies[0].material,
-    // new CANNON.Material('wheel'),
+    new CANNON.Material('wheel'),
     groundMaterial,
     {
         friction: 0.1,
@@ -79,14 +70,33 @@ const wheelToGround = new CANNON.ContactMaterial(
     }
 );
 world.addContactMaterial(wheelToGround);
-
 world.addBody(groundBody);
 
+// Player bus construction
+
+const bus = new Bus({
+    ...defaultVehicleConfig,
+    mass: 5,
+    maxForce: 500,
+    wheelConfig: {
+        ...defaultVehicleConfig.wheelConfig,
+        radius: 1.7,
+    },
+    dimensions: {
+        depth: 12,
+        width: 5,
+        height: 6,
+    },
+});
+bus.addToWorld(world, scene);
+bus.object.receiveShadow = true;
+bus.object.castShadow = true;
+
+// Distance of camera from player
 const cameraOffset = new Vector3(0.0, 5.0, 30.0);
 
-bus.addToWorld(world, scene);
-// camera.position.set(-20, 0, 15);
-// bus.mesh.add(camera);
+// Init debugger
+const cannonDbg = CannonDebugger(scene, world, {});
 
 function animate() {
     requestAnimationFrame(animate);

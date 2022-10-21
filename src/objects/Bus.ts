@@ -3,6 +3,11 @@ import { Keyboard } from '../utils/keyboard';
 import * as THREE from 'three';
 import { defaultVehicleConfig, Vehicle, VehicleConfig } from './Vehicle';
 
+
+/**
+ * Implementation of the bus vehicle used by the player. Implements a vehicle and
+ * handles keyboard interaction to move.
+ */
 export class Bus extends Vehicle {
     constructor(config: VehicleConfig = defaultVehicleConfig) {
         super(config);

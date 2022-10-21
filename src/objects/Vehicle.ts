@@ -1,5 +1,4 @@
 import * as CANNON from 'cannon-es';
-import { Keyboard } from '../utils/keyboard';
 import * as THREE from 'three';
 import { Vec3 } from 'cannon-es';
 
@@ -11,6 +10,7 @@ export type WheelConfig = {
 };
 
 export type VehicleConfig = {
+    mass: number;
     dimensions: { width: number; height: number; depth: number };
     centerOfMass: Vec3;
     maxForce: number;
@@ -19,6 +19,7 @@ export type VehicleConfig = {
 };
 
 export const defaultVehicleConfig: VehicleConfig = {
+    mass: 10,
     dimensions: { width: 2, height: 3, depth: 5 },
     centerOfMass: new Vec3(0, 0, 0),
     maxForce: 200,
@@ -31,11 +32,21 @@ export const defaultVehicleConfig: VehicleConfig = {
     },
 };
 
+/**
+ * Abstraction for vehicle objects. Creates the physics object for a vehicle with the
+ * configuration set by VehicleConfig and manages the basic synchronization of the object
+ * with a Three.js 3d object.
+ *
+ */
 export abstract class Vehicle {
     config: VehicleConfig;
     vehicle: CANNON.RigidVehicle;
     object: THREE.Object3D;
 
+    /**
+     * Builds the graphical 3d object for the chassis. Should match
+     * the dimensions given to the vehicle config.
+     */
     buildChassis3dObject(): THREE.Object3D {
         throw new Error('Not yet implemented');
     }
@@ -46,7 +57,7 @@ export abstract class Vehicle {
         const chassisShape = new CANNON.Box(
             new CANNON.Vec3(depth / 2, height / 2, width / 2)
         );
-        const chassisBody = new CANNON.Body({ mass: 10 });
+        const chassisBody = new CANNON.Body({ mass: this.config.mass });
         chassisBody.addShape(chassisShape, centerOfMass);
         // chassisBody.position.set(0, 5, 0);
         // chassisBody.angularVelocity.set(0, 0.5, 0);
@@ -179,5 +190,4 @@ export abstract class Vehicle {
         this.vehicle.setSteeringValue(0, 0);
         this.vehicle.setSteeringValue(0, 1);
     }
-
 }
