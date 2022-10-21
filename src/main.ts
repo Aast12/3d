@@ -1,14 +1,11 @@
 import * as THREE from 'three';
 import { Vector3 } from 'three';
-import { Key } from 'ts-key-enum';
 import { Keyboard } from './utils/keyboard';
 import * as CANNON from 'cannon-es';
 import CannonDebugger from 'cannon-es-debugger';
 import { Bus } from './objects/Bus';
 
 Keyboard.initialize();
-
-type KeyT = Key | string;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xdddddd);
@@ -59,12 +56,13 @@ scene.add(groundMesh);
 
 const groundMaterial = new CANNON.Material('groundMaterial');
 
-const groundShape = new CANNON.Box(new CANNON.Vec3(50, 1, 50));
+const groundShape = new CANNON.Plane()
 const groundBody = new CANNON.Body({
     mass: 0,
     material: groundMaterial,
     shape: groundShape,
 });
+groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 
 groundBody.position.set(0, -5, 0);
 groundMesh.position.set(0, -5, 0);
@@ -75,8 +73,8 @@ const wheelToGround = new CANNON.ContactMaterial(
     // new CANNON.Material('wheel'),
     groundMaterial,
     {
-        friction: 0.3,
-        restitution: 0,
+        friction: 0.1,
+        restitution: 0.1,
         contactEquationStiffness: 1000,
     }
 );
@@ -95,7 +93,7 @@ function animate() {
 
     // camera.lookAt(bus.mesh.position);
     const objectPosition = new Vector3();
-    bus.mesh.getWorldPosition(objectPosition);
+    bus.object.getWorldPosition(objectPosition);
     camera.position.copy(objectPosition).add(cameraOffset);
 
     Keyboard.clear();

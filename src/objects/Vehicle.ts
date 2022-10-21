@@ -3,14 +3,14 @@ import { Keyboard } from '../utils/keyboard';
 import * as THREE from 'three';
 import { Vec3 } from 'cannon-es';
 
-type WheelConfig = {
+export type WheelConfig = {
     mass: number;
     material: CANNON.Material;
     shapeGen: (radius: number) => CANNON.Shape;
     radius: number;
 };
 
-type VehicleConfig = {
+export type VehicleConfig = {
     dimensions: { width: number; height: number; depth: number };
     centerOfMass: Vec3;
     maxForce: number;
@@ -180,25 +180,4 @@ export abstract class Vehicle {
         this.vehicle.setSteeringValue(0, 1);
     }
 
-    handleInput() {
-        if (Keyboard.isPressed('w')) {
-            this.moveForward();
-        }
-        if (Keyboard.isPressed('s')) {
-            this.moveBackwards();
-        }
-        if (Keyboard.isPressed('d')) {
-            this.steer('right');
-        }
-        if (Keyboard.isPressed('a')) {
-            this.steer('left');
-        }
-
-        if (Keyboard.isReleased('s') || Keyboard.isReleased('w')) {
-            this.resetWheelForce();
-        }
-        if (Keyboard.isReleased('d') || Keyboard.isReleased('a')) {
-            this.resetSteeringValue();
-        }
-    }
 }
