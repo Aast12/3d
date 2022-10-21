@@ -25,7 +25,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 camera.position.z = 15;
-camera.position.y = 15;
+camera.position.y = 5;
 
 const bus = new Bus();
 
@@ -65,10 +65,13 @@ const groundBody = new CANNON.Body({
     shape: groundShape,
 });
 
-groundBody.position.set(0, -1, 0);
+groundBody.position.set(0, -5, 0);
+groundMesh.position.set(0, -5, 0);
 
 const wheelToGround = new CANNON.ContactMaterial(
-    new CANNON.Material('wheel'),
+    // @ts-ignore
+    bus.vehicle.wheelBodies[0].material,
+    // new CANNON.Material('wheel'),
     groundMaterial,
     {
         friction: 0.3,
