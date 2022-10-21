@@ -4,9 +4,9 @@ import * as THREE from 'three';
 
 export class Bus {
     dims = {
-        widht: 2,
-        height: 3,
-        depth: 5,
+        widht: 4,
+        height: 4,
+        depth: 7,
     };
 
     vehicle: CANNON.RigidVehicle;
@@ -15,11 +15,11 @@ export class Bus {
     chassisBody: CANNON.Body;
     wheelBodies: CANNON.Body[] = [];
     centerOfMassAdjust = new CANNON.Vec3(0, 0, 0);
-    axisWidth = 5;
+    axisWidth = 4 + 2.4;
 
-    maxSteerVal = Math.PI / 8;
-    maxSpeed = 10;
-    maxForce = 100;
+    maxSteerVal = Math.PI / 12;
+    maxSpeed = 50;
+    maxForce = 200;
     brakeForce = 1000000;
 
     build3dObject() {
@@ -34,12 +34,12 @@ export class Bus {
         );
     }
 
-    buildChassis() {
+    buildChassis(): CANNON.Body {
         const { depth, widht, height } = this.dims;
         const chassisShape = new CANNON.Box(
             new CANNON.Vec3(depth / 2, height / 2, widht / 2)
         );
-        const chassisBody = new CANNON.Body({ mass: 5 });
+        const chassisBody = new CANNON.Body({ mass: 10 });
         chassisBody.addShape(chassisShape, this.centerOfMassAdjust);
         // chassisBody.position.set(0, 5, 0);
         // chassisBody.angularVelocity.set(0, 0.5, 0);
@@ -67,28 +67,44 @@ export class Bus {
     buildWheels() {
         const { depth, widht, height } = this.dims;
 
-        const wheelMass = 1;
+        const wheelMass = 3;
         const wheelMaterial = new CANNON.Material('wheel');
-        const wheelShape = new CANNON.Sphere(1.5);
-        const xpos = depth / 2 + .75;
+        const wheelShape = new CANNON.Sphere(1.2);
+        const xpos = depth / 2;
         const wheelConfig = [
             {
-                position: new CANNON.Vec3(-xpos, -height / 2, this.axisWidth / 2),
+                position: new CANNON.Vec3(
+                    -xpos,
+                    -height / 2,
+                    this.axisWidth / 2
+                ),
                 // axis: new CANNON.Vec3(0, 1, 0),
                 axis: new CANNON.Vec3(0, 0, 1),
             },
             {
-                position: new CANNON.Vec3(-xpos, -height / 2, -this.axisWidth / 2),
+                position: new CANNON.Vec3(
+                    -xpos,
+                    -height / 2,
+                    -this.axisWidth / 2
+                ),
                 // axis: new CANNON.Vec3(0, -1, 0),
                 axis: new CANNON.Vec3(0, 0, -1),
             },
             {
-                position: new CANNON.Vec3(xpos, -height / 2, this.axisWidth / 2),
+                position: new CANNON.Vec3(
+                    xpos,
+                    -height / 2,
+                    this.axisWidth / 2
+                ),
                 // axis: new CANNON.Vec3(0, 1, 0),
                 axis: new CANNON.Vec3(0, 0, 1),
             },
             {
-                position: new CANNON.Vec3(xpos, -height / 2, -this.axisWidth / 2),
+                position: new CANNON.Vec3(
+                    xpos,
+                    -height / 2,
+                    -this.axisWidth / 2
+                ),
                 // axis: new CANNON.Vec3(0, -1, 0),
                 axis: new CANNON.Vec3(0, 0, -1),
             },
@@ -106,7 +122,7 @@ export class Bus {
 
         this.vehicle.wheelBodies.forEach((wheelBody) => {
             // Some damping to not spin wheels too fast
-            wheelBody.angularDamping = 0.4;
+            wheelBody.angularDamping = 0.9;
         });
     }
 
@@ -129,18 +145,20 @@ export class Bus {
 
     update() {
         this.handleInput();
-        const { position: chassisPosition, quaternion: chassisQuaternion } = this.vehicle.chassisBody;
-        this.mesh.position.set(
-            chassisPosition.x,
-            chassisPosition.y,
-            chassisPosition.z
-        );
+        const { position: chassisPosition, quaternion: chassisQuaternion } =
+            this.vehicle.chassisBody;
+
         this.mesh.quaternion.set(
             chassisQuaternion.x,
             chassisQuaternion.y,
             chassisQuaternion.z,
             chassisQuaternion.w
-        )
+        );
+        this.mesh.position.set(
+            chassisPosition.x,
+            chassisPosition.y,
+            chassisPosition.z
+        );
     }
 
     handleInput() {

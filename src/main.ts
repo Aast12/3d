@@ -93,7 +93,6 @@ bus.addToWorld(world, scene);
 function animate() {
     requestAnimationFrame(animate);
 
-    bus.update();
     // camera.lookAt(bus.mesh.position);
     const objectPosition = new Vector3();
     bus.mesh.getWorldPosition(objectPosition);
@@ -104,6 +103,8 @@ function animate() {
     world.fixedStep();
     cannonDbg.update();
     renderer.render(scene, camera);
+
+    bus.update();
 }
 
 animate();
