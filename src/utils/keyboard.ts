@@ -3,6 +3,7 @@ import { Key } from 'ts-key-enum';
 export enum KeyState {
     UNPRESSED,
     PRESSED,
+    RELEASED,
 }
 
 /**
@@ -19,12 +20,22 @@ export class Keyboard {
     static isPressed(key: Key | string) {
         return this.state.get(key) == KeyState.PRESSED;
     }
+    static isReleased(key: Key | string) {
+        return this.state.get(key) == KeyState.RELEASED;
+    }
 
     static keyDown(e: KeyboardEvent): void {
         Keyboard.state.set(e.key, KeyState.PRESSED);
     }
 
     static keyUp(e: KeyboardEvent): void {
-        Keyboard.state.set(e.key, KeyState.UNPRESSED);
+        Keyboard.state.set(e.key, KeyState.RELEASED);
+    }
+
+    static clear() {
+        this.state.forEach((value, key) => {
+            if (value == KeyState.RELEASED)
+                this.state.set(key, KeyState.UNPRESSED);
+        });
     }
 }
