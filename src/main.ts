@@ -24,12 +24,13 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-camera.position.z = 15;
-camera.position.y = 5;
+camera.position.set(0, 5, 15);
+// camera.position.z = -15;
+// camera.position.y = 5;
 
 const bus = new Bus();
 
-camera.lookAt(new Vector3(0, 0, 0));
+// camera.lookAt(new Vector3(0, 0, 0));
 
 const light = new THREE.AmbientLight(0x404040);
 scene.add(light);
@@ -83,12 +84,21 @@ world.addContactMaterial(wheelToGround);
 
 world.addBody(groundBody);
 
-bus.addToWorld(world);
+const cameraOffset = new Vector3(0.0, 5.0, 30.0);
+
+bus.addToWorld(world, scene);
+// camera.position.set(-20, 0, 15);
+// bus.mesh.add(camera);
 
 function animate() {
     requestAnimationFrame(animate);
 
-    bus.handleInput();
+    bus.update();
+    // camera.lookAt(bus.mesh.position);
+    const objectPosition = new Vector3();
+    bus.mesh.getWorldPosition(objectPosition);
+    camera.position.copy(objectPosition).add(cameraOffset);
+
     Keyboard.clear();
 
     world.fixedStep();
