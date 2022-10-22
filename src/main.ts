@@ -5,6 +5,7 @@ import * as CANNON from 'cannon-es';
 import CannonDebugger from 'cannon-es-debugger';
 import { Bus } from './objects/Bus';
 import { defaultVehicleConfig } from './objects/Vehicle';
+import { City } from './objects/City';
 
 Keyboard.initialize();
 
@@ -89,6 +90,7 @@ const bus = new Bus({
     },
 });
 bus.addToWorld(world, scene);
+// bus.vehicle.chassisBody.position.set(-50, 50, -50);
 bus.object.receiveShadow = true;
 bus.object.castShadow = true;
 
@@ -97,6 +99,17 @@ const cameraOffset = new Vector3(0.0, 5.0, 30.0);
 
 // Init debugger
 const cannonDbg = CannonDebugger(scene, world, {});
+
+const city = new City({
+    buildingConfig: { depth: 10, width: 10, height: 15 },
+    columns: 4,
+    rows: 4,
+    squareCols: 5,
+    squareRows: 5,
+    streetWidth: 12,
+});
+
+city.addToWorld(world, scene);
 
 function animate() {
     requestAnimationFrame(animate);

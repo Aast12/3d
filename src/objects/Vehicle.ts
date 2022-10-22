@@ -58,6 +58,7 @@ export abstract class Vehicle {
             new CANNON.Vec3(depth / 2, height / 2, width / 2)
         );
         const chassisBody = new CANNON.Body({ mass: this.config.mass });
+        chassisBody.position.set(-50, 10, 50);
         chassisBody.addShape(chassisShape, centerOfMass);
         // chassisBody.position.set(0, 5, 0);
         // chassisBody.angularVelocity.set(0, 0.5, 0);
