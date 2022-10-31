@@ -19,6 +19,13 @@ export type CityConfig = {
     buildingConfig: BuildingConfig;
 };
 
+
+/**
+ * Representation of a city. Currently only builds a matrix of buildings,
+ * but this class will allow to get information about the city structure 
+ * and important points (intersection, streets, blocks, etc).
+ * 
+ */
 export class City {
     buildings: { body: CANNON.Body; object: THREE.Object3D }[] = [];
     buildingMaterial: CANNON.Material = new CANNON.Material('building');

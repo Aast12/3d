@@ -14,6 +14,16 @@ const defaultCameraConfig = {
     far: 1000,
 };
 
+/**
+ * ChaseCam
+ * 
+ * Implements a perspective camera that follows the position of a
+ * Three Object. 
+ * 
+ * On every update a position relative to the object is computed 
+ * and setted to the camera. Some interpolation in the position change 
+ * is done for a smooth movement.
+ */
 export class ChaseCam {
     camera: Camera;
     target: Object3D;

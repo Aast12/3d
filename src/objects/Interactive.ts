@@ -7,6 +7,11 @@ export type Dimensions = {
     height: number;
 };
 
+/**
+ * Class to trigger actions on the intersection of an object
+ * with a 3d area.
+ * 
+ */
 export class Interactive {
     dimensions: Dimensions;
     body: Body;
