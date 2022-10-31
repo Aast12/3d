@@ -35,7 +35,7 @@ export class City {
         sqRow: number
     ) {
         let x = startPosition.x + depth * sqCol;
-        let y = startPosition.y + width * sqRow;
+        let y = startPosition.z + width * sqRow;
         const buildPosition = new Vec3(
             0,
             this.config.buildingConfig.height / 4,
@@ -46,8 +46,8 @@ export class City {
 
         this.buildBuilding(buildPosition);
 
-        return buildPosition
-    }   
+        return buildPosition;
+    }
 
     buildCity() {
         const { rows, columns, squareRows, squareCols, streetWidth } =
@@ -59,32 +59,27 @@ export class City {
                 let startX = (squareRows * depth + streetWidth * 2) * col;
                 let startY = (squareCols * width + streetWidth * 2) * row;
                 const startPosition = new Vec3(startX, 0, startY);
-                console.log('startPOS', startPosition);
 
                 for (let sqRow = 0; sqRow < squareRows; sqRow++) {
                     if (sqRow == 0 || sqRow == squareRows - 1) {
                         for (let sqCol = 0; sqCol < squareCols; sqCol++) {
-                            
-                            const po = this.genBuilding(
+                            this.genBuilding(
                                 depth,
                                 width,
                                 startPosition,
                                 sqCol,
                                 sqRow
                             );
-                            console.log('a', po);
                         }
                     } else {
                         for (let sqCol of [0, squareCols - 1]) {
-                            console.log('b');
-                            const po = this.genBuilding(
+                            this.genBuilding(
                                 depth,
                                 width,
                                 startPosition,
                                 sqCol,
                                 sqRow
                             );
-                            console.log('b', po);
                         }
                     }
                 }
