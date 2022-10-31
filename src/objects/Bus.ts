@@ -3,7 +3,6 @@ import { Keyboard } from '../utils/keyboard';
 import * as THREE from 'three';
 import { defaultVehicleConfig, Vehicle, VehicleConfig } from './Vehicle';
 
-
 /**
  * Implementation of the bus vehicle used by the player. Implements a vehicle and
  * handles keyboard interaction to move.
@@ -31,6 +30,9 @@ export class Bus extends Vehicle {
     }
 
     handleInput() {
+        if (Keyboard.isPressed('q')) {
+            console.log(this.vehicle.chassisBody.quaternion);
+        }
         if (Keyboard.isPressed('w')) {
             this.moveForward();
         }

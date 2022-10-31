@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Vector3 } from 'three';
+import { CineonToneMapping, Vector3 } from 'three';
 import { Keyboard } from './utils/keyboard';
 import * as CANNON from 'cannon-es';
 import CannonDebugger from 'cannon-es-debugger';
@@ -7,6 +7,7 @@ import { Bus } from './objects/Bus';
 import { defaultVehicleConfig } from './objects/Vehicle';
 import { City } from './objects/City';
 import { ChaseCam } from './ChaseCam';
+import { Interactive } from './objects/Interactive';
 
 Keyboard.initialize();
 
@@ -35,7 +36,7 @@ const world = new CANNON.World({
 world.broadphase = new CANNON.SAPBroadphase(world);
 
 // Create ground
-const groundGeometry: THREE.PlaneGeometry = new THREE.PlaneGeometry(100, 100);
+const groundGeometry: THREE.PlaneGeometry = new THREE.PlaneGeometry(1000, 1000);
 const groundMesh: THREE.Mesh = new THREE.Mesh(
     groundGeometry,
     new THREE.MeshPhongMaterial()
@@ -101,6 +102,8 @@ const city = new City({
     streetWidth: 20,
 });
 
+const target = new Interactive({ depth: 10, width: 10, height: 15 }, () => {});
+target.addToWorld(world, scene);
 city.addToWorld(world, scene);
 
 const chaseCam = new ChaseCam(bus.object, 20, new Vector3(0, 10, 0));

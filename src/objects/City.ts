@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { Vec3 } from 'cannon-es';
+import { Vector3 } from 'three';
+import { randInt } from 'three/src/math/MathUtils';
 
 export type BuildingConfig = {
     width: number;
@@ -49,6 +51,16 @@ export class City {
         return buildPosition;
     }
 
+    getStreetPos() {
+        const { depth, height, width } = this.config.buildingConfig;
+
+        return this.buildings[
+            randInt(0, this.buildings.length - 1)
+        ].object.position
+            .clone()
+            .add(new Vector3(depth * 1.5, height * 10, width * 1.5));
+    }
+
     buildCity() {
         const { rows, columns, squareRows, squareCols, streetWidth } =
             this.config;
@@ -56,8 +68,10 @@ export class City {
 
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < columns; col++) {
-                let startX = (squareRows * depth + streetWidth * 2) * col;
-                let startY = (squareCols * width + streetWidth * 2) * row;
+                let startX =
+                    (squareRows * depth + streetWidth * 2) * col + streetWidth;
+                let startY =
+                    (squareCols * width + streetWidth * 2) * row + streetWidth;
                 const startPosition = new Vec3(startX, 0, startY);
 
                 for (let sqRow = 0; sqRow < squareRows; sqRow++) {
