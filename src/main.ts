@@ -6,6 +6,7 @@ import CannonDebugger from 'cannon-es-debugger';
 import { Bus } from './objects/Bus';
 import { defaultVehicleConfig } from './objects/Vehicle';
 import { City } from './objects/City';
+import { ChaseCam } from './ChaseCam';
 
 Keyboard.initialize();
 
@@ -13,12 +14,6 @@ Keyboard.initialize();
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xdddddd);
-const camera = new THREE.PerspectiveCamera(
-    75,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-);
 
 const renderer = new THREE.WebGLRenderer();
 
@@ -89,13 +84,10 @@ const bus = new Bus({
         height: 6,
     },
 });
+
 bus.addToWorld(world, scene);
-// bus.vehicle.chassisBody.position.set(-50, 50, -50);
 bus.object.receiveShadow = true;
 bus.object.castShadow = true;
-
-// Distance of camera from player
-const cameraOffset = new Vector3(0.0, 5.0, 30.0);
 
 // Init debugger
 const cannonDbg = CannonDebugger(scene, world, {});
@@ -106,24 +98,23 @@ const city = new City({
     rows: 4,
     squareCols: 5,
     squareRows: 5,
-    streetWidth: 12,
+    streetWidth: 20,
 });
 
 city.addToWorld(world, scene);
 
+const chaseCam = new ChaseCam(bus.object, 20, new Vector3(0, 10, 0));
+
 function animate() {
     requestAnimationFrame(animate);
 
-    // camera.lookAt(bus.mesh.position);
-    const objectPosition = new Vector3();
-    bus.object.getWorldPosition(objectPosition);
-    camera.position.copy(objectPosition).add(cameraOffset);
+    chaseCam.update();
 
     Keyboard.clear();
 
     world.fixedStep();
     cannonDbg.update();
-    renderer.render(scene, camera);
+    renderer.render(scene, chaseCam.get());
 
     bus.update();
 }
