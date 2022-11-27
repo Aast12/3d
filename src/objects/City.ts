@@ -119,10 +119,13 @@ export class City {
 
         const object = new THREE.Mesh(
             new THREE.BoxGeometry(width, height, depth),
-            new THREE.MeshPhongMaterial({
+            new THREE.MeshLambertMaterial({
                 color: 0xaa0000,
             })
         );
+
+        object.castShadow = true;
+        object.receiveShadow = true;
 
         object.position.set(position.x, position.y, position.z);
         body.position.set(position.x, position.y, position.z);
