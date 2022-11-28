@@ -16,7 +16,7 @@ export class BusLoader {
         return new Bus(data, this.config);
     }
 
-    async loadResources(): Promise<THREE.Object3D> {
+    async loadResources(): Promise<THREE.Group> {
         const gltfLoader = new GLTFLoader();
         const url = 'src/models/bus.gltf';
         return new Promise((resolve, reject) => {
@@ -39,10 +39,10 @@ export class BusLoader {
  * handles keyboard interaction to move.
  */
 export class Bus extends Vehicle {
-    modelData: THREE.Object3D;
+    modelData: THREE.Group;
 
     constructor(
-        modelData: THREE.Object3D,
+        modelData: THREE.Group,
         config: VehicleConfig = defaultVehicleConfig
     ) {
         super(config);
@@ -51,7 +51,15 @@ export class Bus extends Vehicle {
     }
 
     buildChassis3dObject(): THREE.Object3D {
-        console.log(this.modelData);
+        this.modelData.castShadow = true;
+        this.modelData.receiveShadow = true;
+
+        this.modelData.traverse(node => {
+            // @ts-ignore
+            if (node?.isMesh) {
+                node.castShadow = true;
+            }
+        })
         this.modelData.children.forEach((mesh) => {
             mesh.castShadow = true;
             mesh.receiveShadow = true;

@@ -20,10 +20,10 @@ export type VehicleConfig = {
 };
 
 export const defaultVehicleConfig: VehicleConfig = {
-    mass: 7,
+    mass: 10,
     dimensions: { width: 2, height: 3, depth: 5 },
-    centerOfMass: new Vec3(0, 0, 0),
-    maxForce: 150,
+    centerOfMass: new Vec3(0, 2, 0),
+    maxForce: 200,
     maxSteering: Math.PI / 12,
     wheelConfig: {
         mass: 3,
@@ -86,7 +86,7 @@ export abstract class Vehicle {
 
     buildWheel(position: CANNON.Vec3, axis: CANNON.Vec3) {
         const { mass, material } = this.config.wheelConfig;
-
+        const { centerOfMass } = this.config;
         const body = new CANNON.Body({ mass, material });
         // body.quaternion.setFromEuler(Math.PI / 2, 0, 0);
 
@@ -105,7 +105,7 @@ export abstract class Vehicle {
         body.addShape(wheelShape, new CANNON.Vec3(), quaternion);
         this.vehicle.addWheel({
             body,
-            position: position,
+            position: position.vadd(centerOfMass),
             axis,
             direction: new CANNON.Vec3(0, -1, 0),
         });
@@ -169,7 +169,7 @@ export abstract class Vehicle {
     update() {
         const { position: chassisPosition, quaternion: chassisQuaternion } =
             this.vehicle.chassisBody;
-
+        const { centerOfMass } = this.config;
         this.object.quaternion.set(
             chassisQuaternion.x,
             chassisQuaternion.y,
@@ -180,10 +180,11 @@ export abstract class Vehicle {
 
         let objSize = getObjectSize(this.object);
 
+        let objPosition = chassisPosition.clone().vadd(centerOfMass);
         this.object.position.set(
-            chassisPosition.x,
-            chassisPosition.y - objSize.y / 2,
-            chassisPosition.z
+            objPosition.x,
+            objPosition.y - objSize.y / 2,
+            objPosition.z
         );
     }
 
