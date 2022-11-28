@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { Keyboard } from './utils/keyboard';
 import * as CANNON from 'cannon-es';
 import CannonDebugger from 'cannon-es-debugger';
-import { Bus } from './objects/Bus';
+import { Bus, BusLoader } from './objects/Bus';
 import { defaultVehicleConfig } from './objects/Vehicle';
 import { City } from './objects/City';
 import { ChaseCam } from './utils/ChaseCam';
@@ -47,20 +47,21 @@ ground.addToWorld(world, scene);
 
 // Player bus construction
 
-const bus = new Bus({
-    ...defaultVehicleConfig,
-    mass: 5,
-    maxForce: 500,
-    wheelConfig: {
-        ...defaultVehicleConfig.wheelConfig,
-        radius: 1.7,
-    },
-    dimensions: {
-        depth: 12,
-        width: 5,
-        height: 6,
-    },
-});
+const bus = await new BusLoader().getBusLoaded();
+// new Bus({
+//     ...defaultVehicleConfig,
+// mass: 5,
+// maxForce: 500,
+// wheelConfig: {
+//     ...defaultVehicleConfig.wheelConfig,
+//     radius: 1.7,
+// },
+// dimensions: {
+//     depth: 12,
+//     width: 5,
+//     height: 6,
+// },
+// });
 
 bus.addToWorld(world, scene);
 bus.object.receiveShadow = true;
@@ -101,10 +102,9 @@ timer.start();
 function animate() {
     requestAnimationFrame(animate);
 
-    
     Keyboard.clear();
     timer.update();
-    
+
     chaseCam.update();
     bus.update();
     sky.update();

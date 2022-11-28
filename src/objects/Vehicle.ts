@@ -1,6 +1,7 @@
 import * as CANNON from 'cannon-es';
 import * as THREE from 'three';
 import { Vec3 } from 'cannon-es';
+import { getObjectSize } from '../utils/math';
 
 export type WheelConfig = {
     mass: number;
@@ -19,10 +20,10 @@ export type VehicleConfig = {
 };
 
 export const defaultVehicleConfig: VehicleConfig = {
-    mass: 10,
+    mass: 7,
     dimensions: { width: 2, height: 3, depth: 5 },
     centerOfMass: new Vec3(0, 0, 0),
-    maxForce: 200,
+    maxForce: 150,
     maxSteering: Math.PI / 12,
     wheelConfig: {
         mass: 3,
@@ -40,8 +41,23 @@ export const defaultVehicleConfig: VehicleConfig = {
  */
 export abstract class Vehicle {
     config: VehicleConfig;
+    // @ts-ignore
     vehicle: CANNON.RigidVehicle;
+    // @ts-ignore
     object: THREE.Object3D;
+
+    constructor(config: VehicleConfig) {
+        this.config = config;
+    }
+
+    build() {
+        this.object = this.buildChassis3dObject();
+
+        this.vehicle = new CANNON.RigidVehicle({
+            chassisBody: this.buildChassis(),
+        });
+        this.buildWheels();
+    }
 
     /**
      * Builds the graphical 3d object for the chassis. Should match
@@ -52,10 +68,13 @@ export abstract class Vehicle {
     }
 
     buildChassis(): CANNON.Body {
-        const { depth, width, height } = this.config.dimensions;
+        // const { depth, width, height } = this.config.dimensions;
+        let objSize = getObjectSize(this.object);
         const { centerOfMass } = this.config;
         const chassisShape = new CANNON.Box(
-            new CANNON.Vec3(depth / 2, height / 2, width / 2)
+            new CANNON.Vec3(objSize.x / 2, objSize.y / 2, objSize.z / 2)
+
+            // new CANNON.Vec3(depth / 2, height / 2, width / 2)
         );
         const chassisBody = new CANNON.Body({ mass: this.config.mass });
         chassisBody.position.set(-50, 10, 50);
@@ -66,78 +85,80 @@ export abstract class Vehicle {
     }
 
     buildWheel(position: CANNON.Vec3, axis: CANNON.Vec3) {
-        const { mass, material, shapeGen, radius } = this.config.wheelConfig;
-        const { centerOfMass } = this.config;
+        const { mass, material } = this.config.wheelConfig;
 
         const body = new CANNON.Body({ mass, material });
         // body.quaternion.setFromEuler(Math.PI / 2, 0, 0);
-        body.addShape(shapeGen(radius));
+
+        let wheels = this.object.children.filter((obj) =>
+            obj.name.includes('Wheel')
+        );
+        let objSize = getObjectSize(wheels[0]);
+        const wheelShape = new CANNON.Sphere(objSize.z * 2);
+
+        const quaternion = new CANNON.Quaternion().setFromEuler(
+            0,
+            0,
+            -Math.PI / 2
+        );
+
+        body.addShape(wheelShape, new CANNON.Vec3(), quaternion);
         this.vehicle.addWheel({
             body,
-            position: position.vadd(centerOfMass),
+            position: position,
             axis,
             direction: new CANNON.Vec3(0, -1, 0),
         });
     }
 
-    buildWheels() {
-        const { width, depth, height } = this.config.dimensions;
+    setupWheelPosition(
+        wheel: THREE.Object3D,
+        axis: CANNON.Vec3,
+        yMod: number
+    ): { position: CANNON.Vec3; axis: CANNON.Vec3 } {
+        const pos = new THREE.Vector3();
+        wheel.getWorldPosition(pos);
+        return {
+            position: new CANNON.Vec3(pos.x, pos.y + yMod, pos.z),
+            axis,
+        };
+    }
 
-        const axisWidth = width + this.config.wheelConfig.radius * 2;
-        const baseXPosition = depth / 2;
-        const wheelConfig = [
-            {
-                position: new CANNON.Vec3(
-                    -baseXPosition,
-                    -height / 2,
-                    axisWidth / 2
-                ),
-                axis: new CANNON.Vec3(0, 0, 1),
-            },
-            {
-                position: new CANNON.Vec3(
-                    -baseXPosition,
-                    -height / 2,
-                    -axisWidth / 2
-                ),
-                axis: new CANNON.Vec3(0, 0, -1),
-            },
-            {
-                position: new CANNON.Vec3(
-                    baseXPosition,
-                    -height / 2,
-                    axisWidth / 2
-                ),
-                axis: new CANNON.Vec3(0, 0, 1),
-            },
-            {
-                position: new CANNON.Vec3(
-                    baseXPosition,
-                    -height / 2,
-                    -axisWidth / 2
-                ),
-                axis: new CANNON.Vec3(0, 0, -1),
-            },
-        ];
+    buildWheels() {
+        const { x: depth, y: _height, z: width } = getObjectSize(this.object);
+        let wheels = this.object.children.filter((obj) =>
+            obj.name.includes('Wheel')
+        );
+
+        let flWheel = this.object.getObjectByName('Wheel_TL')!;
+        let frWheel = this.object.getObjectByName('Wheel_TR')!;
+        let blWheel = this.object.getObjectByName('Wheel_BL')!;
+        let brWheel = this.object.getObjectByName('Wheel_BR')!;
+
+        const wheelConfig: { position: CANNON.Vec3; axis: CANNON.Vec3 }[] = [];
+
+        const yOffset = -_height / 2;
+
+        wheelConfig.push(
+            this.setupWheelPosition(flWheel, new CANNON.Vec3(0, 0, -1), yOffset)
+        );
+        wheelConfig.push(
+            this.setupWheelPosition(frWheel, new CANNON.Vec3(0, 0, 1), yOffset)
+        );
+        wheelConfig.push(
+            this.setupWheelPosition(blWheel, new CANNON.Vec3(0, 0, 1), yOffset)
+        );
+        wheelConfig.push(
+            this.setupWheelPosition(brWheel, new CANNON.Vec3(0, 0, -1), yOffset)
+        );
 
         for (const { axis, position } of wheelConfig) {
             this.buildWheel(position, axis);
         }
 
         this.vehicle.wheelBodies.forEach((wheelBody) => {
-            // Regulates wheel spinning
             wheelBody.angularDamping = 0.9;
         });
-    }
-
-    constructor(config: VehicleConfig) {
-        this.config = config;
-        this.object = this.buildChassis3dObject();
-
-        this.vehicle = new CANNON.RigidVehicle({
-            chassisBody: this.buildChassis(),
-        });
-        this.buildWheels();
     }
 
     addToWorld(world: CANNON.World, scene: THREE.Scene) {
@@ -155,9 +176,13 @@ export abstract class Vehicle {
             chassisQuaternion.z,
             chassisQuaternion.w
         );
+        this.object.rotateY(Math.PI / 2);
+
+        let objSize = getObjectSize(this.object);
+
         this.object.position.set(
             chassisPosition.x,
-            chassisPosition.y,
+            chassisPosition.y - objSize.y / 2,
             chassisPosition.z
         );
     }
@@ -175,8 +200,8 @@ export abstract class Vehicle {
     }
 
     resetWheelForce() {
-        this.vehicle.setWheelForce(0, 2);
-        this.vehicle.setWheelForce(0, 3);
+        // this.vehicle.setWheelForce(0, 2);
+        // this.vehicle.setWheelForce(0, 3);
     }
 
     steer(direction: 'left' | 'right') {
