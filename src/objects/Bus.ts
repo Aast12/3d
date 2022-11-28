@@ -16,12 +16,18 @@ export class Bus extends Vehicle {
         const { depth, width, height } = this.config.dimensions;
         const chassisMaterial = new THREE.MeshPhongMaterial({
             color: 0x003344,
+            reflectivity: 1
         });
 
-        return new THREE.Mesh(
+        let mesh = new THREE.Mesh(
             new THREE.BoxGeometry(depth, height, width),
             chassisMaterial
         );
+
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+
+        return mesh;
     }
 
     update() {

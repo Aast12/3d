@@ -20,6 +20,9 @@ export class Ground {
         this.groundMesh = this.buildGroundMesh(groundDefaultConfig);
         this.groundBody = this.buildGrounBody();
         this.wheelContactMaterial = this.buildWheelContactMaterial();
+
+        this.groundBody.position.set(0, -5, 0);
+        this.groundMesh.position.set(0, -5, 0);
     }
 
     addToWorld(world: CANNON.World, scene: THREE.Scene) {
@@ -58,9 +61,6 @@ export class Ground {
         });
 
         groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-
-        // groundBody.position.set(0, -5, 0);
-        // groundMesh.position.set(0, -5, 0);
 
         return groundBody;
     }

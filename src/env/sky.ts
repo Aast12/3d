@@ -1,33 +1,23 @@
 import * as THREE from 'three';
-import { CineonToneMapping, Vector3 } from 'three';
-import { Keyboard } from '../utils/keyboard';
-import * as CANNON from 'cannon-es';
-import CannonDebugger from 'cannon-es-debugger';
-import { Bus } from '../objects/Bus';
-import { defaultVehicleConfig } from '../objects/Vehicle';
-import { City } from '../objects/City';
-import { ChaseCam } from '../utils/ChaseCam';
-import { Interactive } from '../objects/Interactive';
 
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import skyBoxFragment from '../shaders/skyBoxFragment.js';
 import skyBoxVertex from '../shaders/skyBoxVertex.js';
 import { Timer } from './timer';
-import { rangeMap } from '../utils/math';
 
 const hemisphereDefaultConfig = {
     skyColor: new THREE.Color().setHSL(0.6, 1, 0.6),
     groundColor: new THREE.Color().setHSL(0.095, 1, 0.75),
     intensity: 0.6,
-    initialPosition: new THREE.Vector3(0, 0, 0),
+    initialPosition: new THREE.Vector3(0, 500, 0),
     useHelper: true,
 };
 
 const sunLightDefaultConfig = {
     color: new THREE.Color().setHSL(0.072, 0.82, 0.58),
-    intensity: 2,
-    initialPosition: new THREE.Vector3(0, 1000, 50),
-    distanceFromGround: 1000,
+    nightColor: new THREE.Color().setHSL(0.62, 0.71, 0.58),
+    intensity: 5,
+    initialPosition: new THREE.Vector3(0, 100, 0),
+    distanceFromGround: 100,
 };
 
 const skyBoxDefaultConfig = {
@@ -114,20 +104,19 @@ export class Sky {
         );
         dirLight.position.copy(config.initialPosition);
 
-        const shadowOffset = 50;
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = dirLight.shadow.mapSize.height =
+            1024 * 2;
 
-        dirLight.shadow.camera.left = -shadowOffset;
-        dirLight.shadow.camera.right = shadowOffset;
-        dirLight.shadow.camera.top = shadowOffset;
-        dirLight.shadow.camera.bottom = -shadowOffset;
+        var d = 300;
+
+        dirLight.shadow.camera.left = -d;
+        dirLight.shadow.camera.right = d;
+        dirLight.shadow.camera.top = d;
+        dirLight.shadow.camera.bottom = -d;
 
         dirLight.shadow.camera.far = 3500;
         dirLight.shadow.bias = -0.0001;
-
-        dirLight.castShadow = true;
-
-        dirLight.shadow.mapSize.width = 2048;
-        dirLight.shadow.mapSize.height = 2048;
 
         return dirLight;
     }
@@ -173,30 +162,18 @@ export class Sky {
     };
 
     update() {
-        // chaseCam.update();
-
-        // renderer.render(scene, chaseCam.get());
-        // sunLight.position.y -= 0.5;
-
-        // let newPos = calcNextPos(sunLight.position, (Math.PI * 2) / (60 * 10));
         let newSunPosition = this.calcNextPos(
             new THREE.Vector3(sunLightDefaultConfig.distanceFromGround, 0, 0),
-            rangeMap(
-                this.timer.currTime,
-                0,
-                this.timer.secDayDuration,
-                0,
-                Math.PI * 2
-            )
-            // this.timer.currTime * ((Math.PI * 2) / (6 * 1))
+            this.timer.mapTime(0, Math.PI * 2)
         );
 
         this.sunLight.position.copy(newSunPosition);
 
-        // toCenterHelper.position.copy(new Vector3(0, 0, 0));
-        // toCenterHelper.setDirection(
-        //     new Vector3(0, 0, 0).sub(sunLight.position)
-        // );
+        if (this.timer.isDay()) {
+            this.sunLight.visible = true;
+        } else {
+            this.sunLight.visible = false;
+        }
 
         let newColor = { h: 0, s: 0, l: 0 };
 
@@ -210,33 +187,5 @@ export class Sky {
         (this.skyMesh?.material as THREE.ShaderMaterial).uniforms[
             'topColor'
         ].value.copy(this.hemisphereLight.color);
-
-        // if (currTime > 3) {
-        //     // sunLight.visible = false;
-        //     // currLight -= lightDiff * dt;
-        //     // hemiLight.color.setHSL(0.6, 1, 0.1);
-        //     console.log('set ', 0.1 + currLight);
-        //     hemiLight.color.setHSL(0.6, 1, 0.1 + currLight);
-
-        //     // sky.material.
-        //     sky.material.uniforms['topColor'].value.copy(hemiLight.color);
-        //     // sky.material.uniforms['bottomColor'].value.copy(
-        //     //     new THREE.Color().setHSL(0.6, 0.2, 0.27)
-        //     // );
-
-        //     // scene.fog?.color.copy(uniforms['bottomColor'].value);
-        // } else {
-        //     // sunLight.visible = true;
-        //     // currLight += lightDiff * dt;
-        //     // hemiLight.color.setHSL(0.6, 1, 0.6);
-        //     // hemiLight.color.setHSL(0.57, 1, 0.5);
-        //     console.log('set ', 0.1 + currLight);
-        //     hemiLight.color.setHSL(0.57, 1, 0.1 + currLight);
-        //     // hemiLight.intensity = 0;
-        //     // sky.material.uniforms['topColor'].value.copy(hemiLight.color);
-
-        //     // scene.fog?.color.copy(uniforms['bottomColor'].value);
-        // }
-        // bus.update();
     }
 }
