@@ -1,33 +1,65 @@
-import * as CANNON from 'cannon-es';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Keyboard } from '../utils/keyboard';
 import * as THREE from 'three';
 import { defaultVehicleConfig, Vehicle, VehicleConfig } from './Vehicle';
+
+export class BusLoader {
+    config: VehicleConfig;
+
+    constructor(config: VehicleConfig = defaultVehicleConfig) {
+        this.config = config;
+    }
+
+    async getBusLoaded(): Promise<Bus> {
+        const data = await this.loadResources();
+
+        return new Bus(data, this.config);
+    }
+
+    async loadResources(): Promise<THREE.Object3D> {
+        const gltfLoader = new GLTFLoader();
+        const url = 'src/models/bus.gltf';
+        return new Promise((resolve, reject) => {
+            gltfLoader.load(
+                url,
+                (gltf) => {
+                    resolve(gltf.scene);
+                },
+                (progress) => {
+                    console.info('bus load progress', progress.total);
+                },
+                reject
+            );
+        });
+    }
+}
 
 /**
  * Implementation of the bus vehicle used by the player. Implements a vehicle and
  * handles keyboard interaction to move.
  */
 export class Bus extends Vehicle {
-    constructor(config: VehicleConfig = defaultVehicleConfig) {
+    modelData: THREE.Object3D;
+
+    constructor(
+        modelData: THREE.Object3D,
+        config: VehicleConfig = defaultVehicleConfig
+    ) {
         super(config);
+        this.modelData = modelData;
+        this.build();
     }
 
     buildChassis3dObject(): THREE.Object3D {
-        const { depth, width, height } = this.config.dimensions;
-        const chassisMaterial = new THREE.MeshPhongMaterial({
-            color: 0x003344,
-            reflectivity: 1
+        console.log(this.modelData);
+        this.modelData.children.forEach((mesh) => {
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
         });
+        this.modelData.scale.set(2, 2, 2);
+        this.modelData.rotateY(Math.PI / 2);
 
-        let mesh = new THREE.Mesh(
-            new THREE.BoxGeometry(depth, height, width),
-            chassisMaterial
-        );
-
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-
-        return mesh;
+        return this.modelData;
     }
 
     update() {
