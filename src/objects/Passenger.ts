@@ -4,6 +4,7 @@ import { Dimensions, Interactive } from './Interactive';
 export class Passenger {
     mesh: THREE.Mesh;
     interactive: Interactive;
+    pickupSound: THREE.Audio | undefined;
     callback: (ev: any) => void;
 
     constructor(
@@ -25,10 +26,22 @@ export class Passenger {
             })
         );
 
-        this.interactive = new Interactive(dims, this.callback);
+        this.interactive = new Interactive(dims, (ev) => {
+            this.callback(ev);
+            this.pickupSound?.play();
+        });
         position.y = position.y + dims.height / 2;
         this.mesh.position.copy(position);
         this.interactive.body.position.set(position.x, position.y, position.z);
+    }
+
+    subscribeAudio(listener: THREE.AudioListener) {
+        this.pickupSound = new THREE.Audio(listener);
+        const audioLoader = new THREE.AudioLoader();
+        audioLoader.load('src/sounds/positive.wav', (buffer) => {
+            this.pickupSound!.setBuffer(buffer);
+            this.pickupSound!.setVolume(1);
+        });
     }
 
     addToWorld(world: CANNON.World, scene: THREE.Scene) {

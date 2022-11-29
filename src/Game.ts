@@ -124,6 +124,7 @@ export class Game {
             position,
             this.completeRound.bind(this)
         );
+        this.nextPassenger.subscribeAudio(this.audioListener);
 
         this.nextPassenger.addToWorld(this.env.world, this.scene);
     }
