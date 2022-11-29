@@ -53,10 +53,8 @@ export class Bus extends Vehicle {
 
     subscribeAudio(listener: THREE.AudioListener) {
         this.engineSound = new THREE.Audio(listener);
-        console.log('BRO');
         const audioLoader = new THREE.AudioLoader();
         audioLoader.load('src/sounds/engine.wav', (buffer) => {
-            console.log('BUFF', buffer);
             this.engineSound!.setBuffer(buffer);
             this.engineSound!.setLoop(true);
             this.engineSound!.setVolume(0.5);

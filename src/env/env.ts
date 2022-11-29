@@ -15,15 +15,18 @@ export class Environment {
     sky: Sky;
     ground: Ground;
     world: CANNON.World;
+    debug: boolean;
 
     constructor(
         scene: THREE.Scene,
-        config: EnvironmentConfig = environmentDefaultConfig
+        config: EnvironmentConfig = environmentDefaultConfig,
+        debug: boolean
     ) {
+        this.debug = debug;
         this.config = config;
         
         this.timer = new Timer(config.dayDuration);
-        this.sky = new Sky(this.timer, true);
+        this.sky = new Sky(this.timer, debug);
         this.ground = new Ground();
 
         // Physics world setup

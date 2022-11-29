@@ -20,10 +20,12 @@ import { Keyboard } from './utils/keyboard';
 export type GameConfig = {
     busConfig: VehicleConfig;
     cityMapConfig: CityMapConfig;
+    envConfig?: EnvironmentConfig;
     debug: boolean;
 };
 
 export class Game {
+    config: GameConfig;
     scene: THREE.Scene;
     renderer: WebGLRenderer;
     city: City | undefined;
@@ -40,11 +42,12 @@ export class Game {
     constructor(
         scene: THREE.Scene,
         renderer: WebGLRenderer,
-        envConfig?: EnvironmentConfig
+        config: GameConfig
     ) {
+        this.config = config;
         this.scene = scene;
         this.renderer = renderer;
-        this.env = new Environment(this.scene, envConfig);
+        this.env = new Environment(this.scene, config.envConfig, config.debug);
         this.scene.background = new THREE.Color().setHSL(0.6, 0, 1);
         this.audioListener = new THREE.AudioListener();
     }
@@ -87,14 +90,14 @@ export class Game {
         this.chaseCam.get().add(this.audioListener);
     }
 
-    async init(config: GameConfig) {
+    async init() {
         // Init debugger
-        if (config.debug) {
+        if (this.config.debug) {
             this.cannonDbg = CannonDebugger(this.scene, this.env.world, {});
         }
 
         this.env.timer.start();
-        await this.buildResources(config);
+        await this.buildResources(this.config);
     }
 
     clearPassenger() {
