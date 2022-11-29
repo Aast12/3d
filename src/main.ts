@@ -24,7 +24,7 @@ const game = new Game(scene, renderer, {
 game.init({
     busConfig: defaultVehicleConfig,
     cityMapConfig: defaultCityMapConfig,
-    debug: false,
+    debug: true,
 }).then(() => {
     animate(game);
 });

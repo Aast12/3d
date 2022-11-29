@@ -18,6 +18,8 @@ export const defaultCityMapConfig = [
 
 export type CityMapConfig = typeof defaultCityMapConfig;
 
+export type Position = { x: number; y: number };
+
 const defaultBuildingConfig = {
     width: 20,
     height: 20,
@@ -94,7 +96,6 @@ export class City {
     // @ts-ignore
     startPoint: { x: number; y: number };
     buildingConfig: BuildingConfig = defaultBuildingConfig;
-    // modelData: THREE.Object3D;
     modelData: Map<BuildingType, THREE.Object3D>;
 
     constructor(modelData: THREE.Group, config: string[][]) {
@@ -181,7 +182,7 @@ export class City {
 
     /**
      *
-     * @returns a new valid map to 
+     * @returns a new valid map to generate the city
      */
     preprocessMap(): CellType[][] {
         const { rows, cols } = this.mapDimensions;
@@ -234,10 +235,10 @@ export class City {
     }
 
     /**
-     * Gets the physical position a cell in the map. 
-     * 
-     * @param row 
-     * @param col 
+     * Gets the physical position a cell in the map.
+     *
+     * @param row
+     * @param col
      * @returns A 3D vector with the cell position
      */
     getCellPosition(row: number, col: number): THREE.Vector3 {
@@ -246,14 +247,66 @@ export class City {
         return new THREE.Vector3(row * depth, 0, col * width);
     }
 
-    getStreetPos() {
-        const { depth, height, width } = this.buildingConfig;
+    getSurroundingCellPositions(row: number, col: number): Position[] {
+        const { rows, cols } = this.mapDimensions;
+        const offsets = {
+            up: [1, 0],
+            right: [0, 1],
+            down: [-1, 0],
+            left: [0, -1],
+        };
 
-        return this.buildings[
-            randInt(0, this.buildings.length - 1)
-        ].object.position
-            .clone()
-            .add(new Vector3(depth * 1.5, height * 10, width * 1.5));
+        const positions: Position[] = [];
+
+        Object.keys(offsets).forEach((offset_key) => {
+            // @ts-ignore
+            const offset = offsets[offset_key];
+            const i = row + offset[0];
+            const j = col + offset[1];
+
+            if (i < 0 || j < 0 || i >= rows || j >= cols) return;
+
+            if (this.map[i][j] == CellType.Street) {
+                positions.push({ x: i, y: j });
+            }
+        });
+
+        return positions;
+    }
+
+    getRandomStreetPos(distance: number): Position {
+        const { cols } = this.mapDimensions;
+
+        const dfsStack: { x: number; y: number }[] = [];
+
+        dfsStack.push(this.startPoint);
+        const visited = new Set<number>();
+        visited.add(this.startPoint.x * cols + this.startPoint.y);
+        let step = 0;
+
+        while (dfsStack.length > 0) {
+            const top = dfsStack.pop();
+            if (step >= distance) {
+                return top!;
+            }
+            this.getSurroundingCellPositions(top!.x, top!.y)
+                .sort(() => 0.5 - Math.random())
+                .forEach((next) => {
+                    const hashed = next.x * cols + next.y;
+                    if (!visited.has(hashed)) {
+                        dfsStack.push(next);
+                        visited.add(hashed);
+                    }
+                });
+
+            if (dfsStack.length == 0) {
+                return top!;
+            }
+
+            step++;
+        }
+
+        return this.startPoint;
     }
 
     buildCity() {
@@ -272,7 +325,7 @@ export class City {
                             (prev, curr) => prev + curr,
                             0
                         );
-                        
+
                         // count 0 is ignored, buildings with no surrounding streets are not
                         // rendered
                         switch (count) {
@@ -284,7 +337,7 @@ export class City {
                                 if (side == 2) rotation *= -1;
                                 if (side == 3) rotation *= 2;
 
-                                this.buildBuilding(
+                                this.generateBuilding(
                                     BuildingType.OneSide,
                                     new Vec3(row_idx * depth, 0, col * width),
                                     rotation
@@ -304,7 +357,7 @@ export class City {
                                         if (i == 2) rotation = Math.PI;
                                         if (i == 3) rotation = Math.PI / 2;
 
-                                        this.buildBuilding(
+                                        this.generateBuilding(
                                             BuildingType.Corner,
                                             new Vec3(
                                                 row_idx * depth,
@@ -321,7 +374,7 @@ export class City {
                                             ? 0
                                             : Math.PI / 2;
 
-                                        this.buildBuilding(
+                                        this.generateBuilding(
                                             BuildingType.TwoSides,
                                             new Vec3(
                                                 row_idx * depth,
@@ -342,7 +395,7 @@ export class City {
                                 if (side == 2) rotation *= 1;
                                 if (side == 3) rotation *= 0;
 
-                                this.buildBuilding(
+                                this.generateBuilding(
                                     BuildingType.SingleCorner,
                                     new Vec3(row_idx * depth, 0, col * width),
                                     rotation
@@ -358,7 +411,7 @@ export class City {
         });
     }
 
-    buildBuilding(
+    generateBuilding(
         buildingType: BuildingType,
         position: Vec3,
         rotation: number = 0
@@ -398,6 +451,13 @@ export class City {
             world.addBody(body);
             scene.add(object);
             object.receiveShadow = true;
+        });
+    }
+
+    dispose(world: CANNON.World, scene: THREE.Scene) {
+        this.buildings.forEach(({ body, object }) => {
+            world.removeBody(body);
+            scene.remove(object);
         });
     }
 }

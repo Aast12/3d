@@ -1,6 +1,7 @@
 import CannonDebugger from 'cannon-es-debugger';
 import * as THREE from 'three';
 import { WebGLRenderer } from 'three';
+import { randInt } from 'three/src/math/MathUtils';
 import { Environment, EnvironmentConfig } from './env/env';
 import { Bus, BusLoader } from './objects/Bus';
 import {
@@ -8,7 +9,10 @@ import {
     CityLoader,
     CityMapConfig,
     defaultCityMapConfig,
+    Position,
 } from './objects/City';
+import { Interactive } from './objects/Interactive';
+import { Passenger } from './objects/Passenger';
 import { defaultVehicleConfig, VehicleConfig } from './objects/Vehicle';
 import { ChaseCam } from './utils/ChaseCam';
 import { Keyboard } from './utils/keyboard';
@@ -29,6 +33,10 @@ export class Game {
     cannonDbg: ReturnType<typeof CannonDebugger> | undefined;
     audioListener: THREE.AudioListener;
 
+    nextPos: Position | undefined;
+    target: Interactive | undefined;
+    nextPassenger: Passenger | undefined;
+
     constructor(
         scene: THREE.Scene,
         renderer: WebGLRenderer,
@@ -40,6 +48,8 @@ export class Game {
         this.scene.background = new THREE.Color().setHSL(0.6, 0, 1);
         this.audioListener = new THREE.AudioListener();
     }
+
+    generatePassenger() {}
 
     async buildBus(config: VehicleConfig): Promise<Bus> {
         this.bus = await new BusLoader(config).getBusLoaded();
@@ -64,7 +74,7 @@ export class Game {
             ...config.busConfig,
             initialPosition,
         });
-        
+
         bus.addToWorld(this.env.world, this.scene);
         bus.subscribeAudio(this.audioListener);
 
@@ -87,15 +97,32 @@ export class Game {
         await this.buildResources(config);
     }
 
+    clearPassenger() {
+        this.nextPassenger?.dispose(this.env.world, this.scene);
+        this.nextPassenger = undefined;
+    }
+
     update() {
         const chaseCam = this.chaseCam;
         if (!chaseCam) return;
 
         Keyboard.clear();
+        this.env.world.fixedStep();
         this.env.update();
 
+        if (!this.nextPassenger) {
+            const distance = randInt(3, 20);
+            const nextPos = this.city!.getRandomStreetPos(distance);
+            const position = this.city!.getCellPosition(nextPos.x, nextPos.y);
+
+            this.nextPassenger = new Passenger(
+                position,
+                this.clearPassenger.bind(this)
+            );
+            this.nextPassenger.addToWorld(this.env.world, this.scene);
+        }
+
         this.bus && this.bus.update();
-        this.env.world.fixedStep();
         this.cannonDbg && this.cannonDbg.update();
 
         chaseCam.update();

@@ -20,7 +20,7 @@ export class Interactive {
         this.onTrigger = onTrigger;
         this.dimensions = dimensions;
         const { depth, width, height } = dimensions;
-        const boxShape = new Box(new Vec3(depth, height, width));
+        const boxShape = new Box(new Vec3(depth / 2, height / 2, width / 2));
 
         this.body = new Body({ isTrigger: true });
         this.body.addShape(boxShape);
