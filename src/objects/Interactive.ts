@@ -1,5 +1,4 @@
 import { Body, Box, Vec3, World } from 'cannon-es';
-import { Scene } from 'three';
 
 export type Dimensions = {
     depth: number;

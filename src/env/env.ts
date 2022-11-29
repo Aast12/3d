@@ -7,7 +7,7 @@ const environmentDefaultConfig = {
     dayDuration: 5,
 };
 
-type EnvironmentConfig = typeof environmentDefaultConfig;
+export type EnvironmentConfig = typeof environmentDefaultConfig;
 
 export class Environment {
     config: EnvironmentConfig;

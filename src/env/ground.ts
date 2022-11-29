@@ -20,9 +20,6 @@ export class Ground {
         this.groundMesh = this.buildGroundMesh(groundDefaultConfig);
         this.groundBody = this.buildGrounBody();
         this.wheelContactMaterial = this.buildWheelContactMaterial();
-
-        // this.groundBody.position.set(0, -5, 0);
-        // this.groundMesh.position.set(0, -5, 0);
     }
 
     addToWorld(world: CANNON.World, scene: THREE.Scene) {

@@ -40,6 +40,7 @@ export class BusLoader {
  */
 export class Bus extends Vehicle {
     modelData: THREE.Group;
+    engineSound: THREE.Audio | undefined;
 
     constructor(
         modelData: THREE.Group,
@@ -50,17 +51,29 @@ export class Bus extends Vehicle {
         this.build();
     }
 
+    subscribeAudio(listener: THREE.AudioListener) {
+        this.engineSound = new THREE.Audio(listener);
+        console.log('BRO');
+        const audioLoader = new THREE.AudioLoader();
+        audioLoader.load('src/sounds/engine.wav', (buffer) => {
+            console.log('BUFF', buffer);
+            this.engineSound!.setBuffer(buffer);
+            this.engineSound!.setLoop(true);
+            this.engineSound!.setVolume(0.5);
+        });
+    }
+
     buildChassis3dObject(): THREE.Object3D {
         this.modelData.castShadow = true;
         this.modelData.receiveShadow = true;
 
-        this.modelData.traverse(node => {
+        this.modelData.traverse((node) => {
             // @ts-ignore
             if (node?.isMesh) {
                 node.castShadow = true;
                 node.receiveShadow = true;
             }
-        })
+        });
         this.modelData.children.forEach((mesh) => {
             mesh.castShadow = true;
             mesh.receiveShadow = true;
@@ -95,6 +108,13 @@ export class Bus extends Vehicle {
 
         if (!Keyboard.isPressed('s') && !Keyboard.isPressed('w')) {
             this.resetWheelForce();
+            this.engineSound &&
+                this.engineSound.isPlaying &&
+                this.engineSound.stop();
+        } else {
+            this.engineSound &&
+                !this.engineSound.isPlaying &&
+                this.engineSound.play();
         }
         if (!Keyboard.isPressed('d') && !Keyboard.isPressed('a')) {
             this.resetSteeringValue();

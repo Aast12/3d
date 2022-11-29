@@ -16,6 +16,8 @@ export const defaultCityMapConfig = [
     ['.', '.', '.', '.', '.', '.', '.', 'W', '.'],
 ];
 
+export type CityMapConfig = typeof defaultCityMapConfig;
+
 const defaultBuildingConfig = {
     width: 20,
     height: 20,

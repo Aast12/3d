@@ -61,6 +61,11 @@ export abstract class Vehicle {
         this.buildWheels();
     }
 
+    dispose(world: CANNON.World, scene: THREE.Scene) {
+        this.vehicle.removeFromWorld(world);
+        scene.remove(this.object);
+    }
+
     /**
      * Builds the graphical 3d object for the chassis. Should match
      * the dimensions given to the vehicle config.
