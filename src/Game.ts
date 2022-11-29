@@ -131,7 +131,6 @@ export class Game {
     roundUpdate() {
         const elapsedTime = Date.now() - this.roundStartTime!;
         const remainingTime = this.roundTime! - elapsedTime;
-        console.log(remainingTime);
         if (remainingTime <= 0) {
             this.terminate();
         }

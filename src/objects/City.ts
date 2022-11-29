@@ -44,6 +44,7 @@ enum BuildingType {
     TwoSides,
     OneSide,
     Island,
+    Hidden,
 }
 
 /**
@@ -124,6 +125,10 @@ export class City {
             BuildingType.SingleCorner,
             modelData.getObjectByName('Building_single_corner')!
         );
+        this.modelData.set(
+            BuildingType.Hidden,
+            modelData.getObjectByName('Building_hidden')!
+        );
 
         let buildingSize = getObjectSize(
             this.modelData.get(BuildingType.Island)!
@@ -138,6 +143,34 @@ export class City {
         this.map = this.preprocessMap();
 
         this.buildCity();
+    }
+
+    private isCornerCell(row: number, col: number): boolean {
+        const { rows, cols } = this.mapDimensions;
+        const offsets = [
+            [1, 1],
+            [1, -1],
+            [-1, 1],
+            [-1, -1],
+        ];
+
+        return offsets
+            .map((offset) => {
+                const i = row + offset[0];
+                const j = col + offset[1];
+
+                if (i < 0 || j < 0 || i >= rows || j >= cols) return false;
+
+                if (
+                    this.mapConfig[i][j] == CellType.Street ||
+                    this.mapConfig[i][j] == CellType.StartPoint
+                ) {
+                    return true;
+                }
+
+                return false;
+            })
+            .some((value) => value);
     }
 
     /**
@@ -171,7 +204,6 @@ export class City {
                 this.mapConfig[i][j] == CellType.StartPoint
             ) {
                 surroundingStreet[offset_idx] = 1;
-                // surroundingStreet.push(offset_key);
             }
         });
 
@@ -246,9 +278,9 @@ export class City {
     }
 
     /**
-     * 
-     * @param row 
-     * @param col 
+     *
+     * @param row
+     * @param col
      * @returns A list of surrounding street positions to a map cell.
      */
     getSurroundingCellPositions(row: number, col: number): Position[] {
@@ -280,11 +312,11 @@ export class City {
 
     /**
      * Returns a *valid* street random position from the map.
-     * 
+     *
      * The position is calculated doing a DFS from the start point
      * of the map, moving a fixed amount of steps and choosing random
      * neighbor cells.
-     * 
+     *
      * @param distance Steps from the start point to the random position
      * @returns A random street position in the map
      */
@@ -415,6 +447,18 @@ export class City {
                                     rotation
                                 );
                                 break;
+                            }
+                            default: {
+                                if (this.isCornerCell(row_idx, col)) {
+                                    this.generateBuilding(
+                                        BuildingType.Hidden,
+                                        new Vec3(
+                                            row_idx * depth,
+                                            0,
+                                            col * width
+                                        )
+                                    );
+                                }
                             }
                         }
 
