@@ -20,6 +20,10 @@ const game = new Game(scene, renderer, {
 
 game.init().then(() => {
     animate(game);
+
+    setTimeout(() => {
+        game.startGame();
+    }, 5000);
 });
 
 function animate(game: Game) {

@@ -4,8 +4,7 @@ import { WebGLRenderer } from 'three';
 import { randInt } from 'three/src/math/MathUtils';
 import { Environment, EnvironmentConfig } from './env/env';
 import { Bus, BusLoader } from './objects/Bus';
-import { City, CityLoader, CityMapConfig, Position } from './objects/City';
-import { Interactive } from './objects/Interactive';
+import { City, CityLoader, CityMapConfig } from './objects/City';
 import { Passenger } from './objects/Passenger';
 import { VehicleConfig } from './objects/Vehicle';
 import { ChaseCam } from './utils/ChaseCam';
@@ -29,9 +28,16 @@ export class Game {
     cannonDbg: ReturnType<typeof CannonDebugger> | undefined;
     audioListener: THREE.AudioListener;
 
-    nextPos: Position | undefined;
-    target: Interactive | undefined;
+    gameStarted: boolean = false;
+    gameOver: boolean = false;
+
+    roundCoolDown: number = 3000;
+
+    currentRound: number = 0;
+    startNextRound: boolean = false;
     nextPassenger: Passenger | undefined;
+    roundStartTime: number | undefined;
+    roundTime: number | undefined;
 
     constructor(
         scene: THREE.Scene,
@@ -94,29 +100,71 @@ export class Game {
         await this.buildResources(this.config);
     }
 
-    clearPassenger() {
+    startGame() {
+        this.gameStarted = true;
+        this.startNextRound = true;
+    }
+
+    calculateRoundTime(distance: number) {
+        return distance * 5 * 1000;
+    }
+
+    startRound() {
+        this.startNextRound = false;
+        this.roundStartTime = Date.now();
+
+        const distance = randInt(3, 20);
+        this.roundTime = this.calculateRoundTime(distance);
+
+        const nextPos = this.city!.getRandomStreetPos(distance);
+        const position = this.city!.getCellPosition(nextPos.x, nextPos.y);
+
+        this.nextPassenger = new Passenger(
+            position,
+            this.completeRound.bind(this)
+        );
+
+        this.nextPassenger.addToWorld(this.env.world, this.scene);
+    }
+
+    roundUpdate() {
+        const elapsedTime = Date.now() - this.roundStartTime!;
+        const remainingTime = this.roundTime! - elapsedTime;
+        console.log(remainingTime);
+        if (remainingTime <= 0) {
+            this.terminate();
+        }
+    }
+
+    completeRound() {
         this.nextPassenger?.dispose(this.env.world, this.scene);
         this.nextPassenger = undefined;
+        this.roundStartTime = undefined;
+        this.roundTime = undefined;
+
+        setTimeout(() => {
+            this.startNextRound = true;
+        }, this.roundCoolDown);
+    }
+
+    terminate() {
+        this.gameOver = true;
     }
 
     update() {
         const chaseCam = this.chaseCam;
         if (!chaseCam) return;
+        if (this.gameOver) return;
 
         Keyboard.clear();
         this.env.world.fixedStep();
         this.env.update();
 
-        if (!this.nextPassenger) {
-            const distance = randInt(3, 20);
-            const nextPos = this.city!.getRandomStreetPos(distance);
-            const position = this.city!.getCellPosition(nextPos.x, nextPos.y);
-
-            this.nextPassenger = new Passenger(
-                position,
-                this.clearPassenger.bind(this)
-            );
-            this.nextPassenger.addToWorld(this.env.world, this.scene);
+        if (this.startNextRound) {
+            this.startRound();
+        }
+        if (this.roundStartTime) {
+            this.roundUpdate();
         }
 
         this.bus && this.bus.update();

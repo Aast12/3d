@@ -245,6 +245,12 @@ export class City {
         return new THREE.Vector3(row * depth, 0, col * width);
     }
 
+    /**
+     * 
+     * @param row 
+     * @param col 
+     * @returns A list of surrounding street positions to a map cell.
+     */
     getSurroundingCellPositions(row: number, col: number): Position[] {
         const { rows, cols } = this.mapDimensions;
         const offsets = {
@@ -272,6 +278,16 @@ export class City {
         return positions;
     }
 
+    /**
+     * Returns a *valid* street random position from the map.
+     * 
+     * The position is calculated doing a DFS from the start point
+     * of the map, moving a fixed amount of steps and choosing random
+     * neighbor cells.
+     * 
+     * @param distance Steps from the start point to the random position
+     * @returns A random street position in the map
+     */
     getRandomStreetPos(distance: number): Position {
         const { cols } = this.mapDimensions;
 
