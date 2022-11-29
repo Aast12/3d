@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { Keyboard } from './utils/keyboard';
 import CannonDebugger from 'cannon-es-debugger';
 import { BusLoader } from './objects/Bus';
-import { City, CityLoader, defaultCityConfig } from './objects/City';
+import { City, CityLoader, defaultCityMapConfig } from './objects/City';
 import { ChaseCam } from './utils/ChaseCam';
 import { Interactive } from './objects/Interactive';
 
@@ -36,7 +36,7 @@ const cannonDbg = CannonDebugger(scene, world, {});
 //     streetWidth: 20,
 // });
 
-const city = await new CityLoader(defaultCityConfig).getCityLoaded();
+const city = await new CityLoader(defaultCityMapConfig).getCityLoaded();
 const { x, y } = city.startPoint;
 const initialPosition = city.getCellPosition(x, y);
 initialPosition.y = 10;

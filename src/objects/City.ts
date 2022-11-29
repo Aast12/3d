@@ -6,7 +6,7 @@ import { randInt } from 'three/src/math/MathUtils';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { getObjectSize } from '../utils/math';
 
-export const defaultCityConfig = [
+export const defaultCityMapConfig = [
     ['.', '.', '.', '.', '.', '.', '.', '.', '.'],
     ['.', 'W', '.', 'W', 'W', 'W', 'W', 'W', '.'],
     ['W', 'W', 'W', 'W', 'W', 'W', '.', 'W', 'W'],
@@ -28,15 +28,6 @@ export type BuildingConfig = {
     depth: number;
 };
 
-export type CityConfig = {
-    rows: number;
-    columns: number;
-    squareRows: number;
-    squareCols: number;
-    streetWidth: number;
-    buildingConfig: BuildingConfig;
-};
-
 enum CellType {
     Building = '.',
     RawStreet = 'V',
@@ -53,6 +44,9 @@ enum BuildingType {
     Island,
 }
 
+/**
+ * Loads a City object from a buildings model file.
+ */
 export class CityLoader {
     config: string[][];
 
@@ -85,15 +79,14 @@ export class CityLoader {
 }
 
 /**
- * Representation of a city. Currently only builds a matrix of buildings,
- * but this class will allow to get information about the city structure
- * and important points (intersection, streets, blocks, etc).
+ * Manager for the city building. Receives a city config object that represents
+ * the city map and generates the buildings accordingly.
  *
  */
 export class City {
     buildings: { body: CANNON.Body; object: THREE.Object3D }[] = [];
     buildingMaterial: CANNON.Material = new CANNON.Material('building');
-    config: string[][];
+    mapConfig: string[][];
     mapDimensions: { rows: number; cols: number };
     map: CellType[][];
     // @ts-ignore
@@ -103,10 +96,10 @@ export class City {
     modelData: Map<BuildingType, THREE.Object3D>;
 
     constructor(modelData: THREE.Group, config: string[][]) {
-        this.config = config;
+        this.mapConfig = config;
         this.mapDimensions = {
-            rows: this.config.length,
-            cols: this.config[0].length,
+            rows: this.mapConfig.length + 2, // Preprocessing adds 2 new rows and cols
+            cols: this.mapConfig[0].length + 2,
         };
 
         this.modelData = new Map();
@@ -141,11 +134,19 @@ export class City {
             width: buildingSize.z,
         };
 
-        this.map = this.validateCityMap();
+        this.map = this.preprocessMap();
 
         this.buildCity();
     }
 
+    /**
+     * Returns a map of the surrounding streets [up right down left]
+     *
+     * @param row Row of the map cell to check
+     * @param col Col of the map cell to check
+     * @returns a list of 4 numbers, representing if there is a street in the sides
+     *          [up right down left]
+     */
     private getSurroundingStreet(row: number, col: number): number[] {
         const { rows, cols } = this.mapDimensions;
         const positions = {
@@ -165,8 +166,8 @@ export class City {
             if (i < 0 || j < 0 || i >= rows || j >= cols) return;
 
             if (
-                this.config[i][j] == CellType.Street ||
-                this.config[i][j] == CellType.StartPoint
+                this.mapConfig[i][j] == CellType.Street ||
+                this.mapConfig[i][j] == CellType.StartPoint
             ) {
                 surroundingStreet[offset_idx] = 1;
                 // surroundingStreet.push(offset_key);
@@ -176,7 +177,11 @@ export class City {
         return surroundingStreet;
     }
 
-    validateCityMap() {
+    /**
+     *
+     * @returns a new valid map to 
+     */
+    preprocessMap(): CellType[][] {
         const { rows, cols } = this.mapDimensions;
 
         const newMap: CellType[][] = new Array(rows)
@@ -185,7 +190,14 @@ export class City {
 
         let startPoint: typeof this.startPoint;
 
-        this.config.forEach((row, row_idx) => {
+        // Wraps the map with buildings
+        this.mapConfig = [
+            new Array(cols).fill('.'),
+            ...this.mapConfig.map((row) => ['.', ...row, '.']),
+            new Array(cols).fill('.'),
+        ];
+
+        this.mapConfig.forEach((row, row_idx) => {
             row.forEach((cell, col) => {
                 switch (cell) {
                     case CellType.Building: {
@@ -219,6 +231,13 @@ export class City {
         return newMap;
     }
 
+    /**
+     * Gets the physical position a cell in the map. 
+     * 
+     * @param row 
+     * @param col 
+     * @returns A 3D vector with the cell position
+     */
     getCellPosition(row: number, col: number): THREE.Vector3 {
         const { depth, width } = this.buildingConfig;
 
@@ -238,7 +257,8 @@ export class City {
     buildCity() {
         const { depth, width } = this.buildingConfig;
 
-        this.config.forEach((row, row_idx) => {
+        // Finds type of building and rotates according to surrounding streets
+        this.mapConfig.forEach((row, row_idx) => {
             row.forEach((cell, col) => {
                 switch (cell) {
                     case CellType.Building: {
@@ -250,7 +270,9 @@ export class City {
                             (prev, curr) => prev + curr,
                             0
                         );
-
+                        
+                        // count 0 is ignored, buildings with no surrounding streets are not
+                        // rendered
                         switch (count) {
                             case 1: {
                                 let rotation = Math.PI / 2;
