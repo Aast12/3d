@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { Keyboard } from './utils/keyboard';
 import CannonDebugger from 'cannon-es-debugger';
 import { BusLoader } from './objects/Bus';
-import { City, CityLoader, defaultCityMapConfig } from './objects/City';
+import { CityLoader, defaultCityMapConfig } from './objects/City';
 import { ChaseCam } from './utils/ChaseCam';
 import { Interactive } from './objects/Interactive';
 
@@ -22,27 +22,17 @@ scene.background = new THREE.Color().setHSL(0.6, 0, 1);
 const env = new Environment(scene);
 const world = env.world;
 
-// Player bus construction
-
 // Init debugger
 const cannonDbg = CannonDebugger(scene, world, {});
 
-// const city = new City({
-//     buildingConfig: { depth: 10, width: 10, height: 15 },
-//     columns: 4,
-//     rows: 4,
-//     squareCols: 5,
-//     squareRows: 5,
-//     streetWidth: 20,
-// });
-
 const city = await new CityLoader(defaultCityMapConfig).getCityLoaded();
+
 const { x, y } = city.startPoint;
 const initialPosition = city.getCellPosition(x, y);
 initialPosition.y = 10;
 
 const target = new Interactive({ depth: 10, width: 10, height: 15 }, () => {});
-target.addToWorld(world, scene);
+target.addToWorld(world);
 city.addToWorld(world, scene);
 
 const bus = await new BusLoader({
