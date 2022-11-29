@@ -18,5 +18,8 @@
     "cannon-es-debugger": "^1.0.0",
     "three": "^0.145.0",
     "ts-key-enum": "^2.0.12"
+  },
+  "engines": {
+    "node": "16.13.1"
   }
 }

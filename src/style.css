@@ -1,4 +1,53 @@
 body {
     margin: 0;
     padding: 0;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.full {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    padding: 2em;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    background-color: rgba(0, 0, 0, 0.368);
+}
+
+#game-over {
+    background-color: rgba(0, 0, 0);
+    color: white;
+    text-align: center;
+}
+
+#info-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: rgba(128, 128, 128, 0.5);
+    margin: 1em;
+    padding: 1em;
+    color: white;
+}
+
+#tutorial {
+    color: white;
+    font-size: 1.5em;
+}
+
+.btn {
+    background-color: transparent;
+    border: 1px solid white;
+    padding: 0.5em;
+    font-size: inherit;
+    color: inherit;
+    transition: all 0.1s linear;
+}
+
+.btn:hover {
+    background-color: white;
+    color: black;
 }

@@ -21,9 +21,11 @@ const game = new Game(scene, renderer, {
 game.init().then(() => {
     animate(game);
 
-    setTimeout(() => {
+    document.getElementById('start')?.addEventListener('click', (_) => {
+        document.getElementById('tutorial')!.hidden = true;
+        document.getElementById('info-container')!.hidden = false;
         game.startGame();
-    }, 5000);
+    });
 });
 
 function animate(game: Game) {

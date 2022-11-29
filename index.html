@@ -3,11 +3,34 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="/src/style.css">
+        <link rel="stylesheet" href="/src/style.css" />
         <title>Graphics</title>
     </head>
     <body>
-        <h1 id="countdown" hidden></h1>
+        <div class="full" id="tutorial">
+            <h1>Bus Maze</h1>
+
+            <div>
+                <h2>Instrucciones:</h2>
+                <p>Moverse: W, A, S, D</p>
+
+                <p>
+                    Busca al siguiente pasajero antes de que se acabé el tiempo!
+                </p>
+            </div>
+
+            <button class="btn" id="start">Comenzar</button>
+        </div>
+
+        <div class="full" id="game-over" hidden>
+            <h1>Se acabó el tiempo</h1>
+
+            <button class="btn" onClick="window.location.reload();">
+                Intentar de nuevo
+            </button>
+        </div>
+        <div id="info-container" hidden></div>
+
         <div id="app"></div>
         <script type="module" src="/src/main.ts"></script>
     </body>

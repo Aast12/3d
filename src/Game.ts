@@ -106,10 +106,11 @@ export class Game {
     }
 
     calculateRoundTime(distance: number) {
-        return distance * 5 * 1000;
+        return distance * 3 * 1000;
     }
 
     startRound() {
+        this.currentRound++;
         this.startNextRound = false;
         this.roundStartTime = Date.now();
 
@@ -134,6 +135,12 @@ export class Game {
         if (remainingTime <= 0) {
             this.terminate();
         }
+
+        const info = document.getElementById('info-container');
+        info!.innerHTML = `
+        <h2>Ronda ${this.currentRound}</h2>
+        <p>Tiempo restante: ${remainingTime / 1000}</p>
+        `;
     }
 
     completeRound() {
@@ -142,6 +149,14 @@ export class Game {
         this.roundStartTime = undefined;
         this.roundTime = undefined;
 
+        const info = document.getElementById('info-container');
+        info!.innerHTML = `
+        <h2>Ronda ${this.currentRound} completada!</h2>
+        <p>Siguiente ronda en ${Math.floor(
+            this.roundCoolDown / 1000
+        )} segundos</p>
+        `;
+
         setTimeout(() => {
             this.startNextRound = true;
         }, this.roundCoolDown);
@@ -149,6 +164,8 @@ export class Game {
 
     terminate() {
         this.gameOver = true;
+        document.getElementById('info-container')!.hidden = true;
+        document.getElementById('game-over')!.hidden = false;
     }
 
     update() {
