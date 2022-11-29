@@ -58,6 +58,7 @@ export class Bus extends Vehicle {
             // @ts-ignore
             if (node?.isMesh) {
                 node.castShadow = true;
+                node.receiveShadow = true;
             }
         })
         this.modelData.children.forEach((mesh) => {

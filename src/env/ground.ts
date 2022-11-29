@@ -21,8 +21,8 @@ export class Ground {
         this.groundBody = this.buildGrounBody();
         this.wheelContactMaterial = this.buildWheelContactMaterial();
 
-        this.groundBody.position.set(0, -5, 0);
-        this.groundMesh.position.set(0, -5, 0);
+        // this.groundBody.position.set(0, -5, 0);
+        // this.groundMesh.position.set(0, -5, 0);
     }
 
     addToWorld(world: CANNON.World, scene: THREE.Scene) {
@@ -62,11 +62,14 @@ export class Ground {
 
         groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 
+        groundBody.position.set(0, 0, 0);
+
         return groundBody;
     }
 
-    private buildWheelContactMaterial(): CANNON.ContactMaterial{
-        if (!this.groundBody.material) throw new Error('Ground body has no material');
+    private buildWheelContactMaterial(): CANNON.ContactMaterial {
+        if (!this.groundBody.material)
+            throw new Error('Ground body has no material');
 
         return new CANNON.ContactMaterial(
             new CANNON.Material('wheel'),

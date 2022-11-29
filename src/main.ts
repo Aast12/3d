@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { Keyboard } from './utils/keyboard';
 import CannonDebugger from 'cannon-es-debugger';
 import { BusLoader } from './objects/Bus';
-import { City } from './objects/City';
+import { City, CityLoader, defaultCityConfig } from './objects/City';
 import { ChaseCam } from './utils/ChaseCam';
 import { Interactive } from './objects/Interactive';
 
@@ -30,20 +30,24 @@ bus.addToWorld(world, scene);
 // Init debugger
 const cannonDbg = CannonDebugger(scene, world, {});
 
-const city = new City({
-    buildingConfig: { depth: 10, width: 10, height: 15 },
-    columns: 4,
-    rows: 4,
-    squareCols: 5,
-    squareRows: 5,
-    streetWidth: 20,
-});
+// const city = new City({
+//     buildingConfig: { depth: 10, width: 10, height: 15 },
+//     columns: 4,
+//     rows: 4,
+//     squareCols: 5,
+//     squareRows: 5,
+//     streetWidth: 20,
+// });
+
+const city = await new CityLoader(defaultCityConfig).getCityLoaded();
 
 const target = new Interactive({ depth: 10, width: 10, height: 15 }, () => {});
 target.addToWorld(world, scene);
 city.addToWorld(world, scene);
 
 const chaseCam = new ChaseCam(bus.object, 20, new Vector3(0, 10, 0));
+
+
 
 env.timer.start();
 

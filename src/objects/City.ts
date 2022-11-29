@@ -3,6 +3,24 @@ import * as CANNON from 'cannon-es';
 import { Vec3 } from 'cannon-es';
 import { Vector3 } from 'three';
 import { randInt } from 'three/src/math/MathUtils';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { getObjectSize } from '../utils/math';
+
+export const defaultCityConfig = [
+    ['.', '.', '.', '.', '.', '.', '.', '.', '.'],
+    ['.', 'V', 'V', 'V', 'V', 'V', 'V', 'V', '.'],
+    ['.', 'V', '.', '.', 'V', '.', '.', 'V', '.'],
+    ['.', 'V', '.', '.', 'V', 'V', 'V', 'V', '.'],
+    ['.', 'V', 'V', '.', 'V', '.', '.', 'V', '.'],
+    ['.', '.', 'V', 'V', 'V', 'V', 'V', 'S', '.'],
+    ['.', '.', 'V', '.', '.', '.', '.', 'V', '.'],
+];
+
+const defaultBuildingConfig = {
+    width: 20,
+    height: 20,
+    depth: 20,
+};
 
 export type BuildingConfig = {
     width: number;
@@ -19,22 +37,73 @@ export type CityConfig = {
     buildingConfig: BuildingConfig;
 };
 
+enum CellType {
+    Building,
+    Street,
+    StartPoint,
+}
+
+export class CityLoader {
+    config: string[][];
+
+    constructor(cityConfig: string[][]) {
+        this.config = cityConfig;
+    }
+
+    async getCityLoaded(): Promise<City> {
+        const data = await this.loadResources();
+
+        return new City(data, this.config);
+    }
+
+    async loadResources(): Promise<THREE.Group> {
+        const gltfLoader = new GLTFLoader();
+        const url = 'src/models/building.gltf';
+        return new Promise((resolve, reject) => {
+            gltfLoader.load(
+                url,
+                (gltf) => {
+                    resolve(gltf.scene);
+                },
+                (progress) => {
+                    console.info('bus load progress', progress.total);
+                },
+                reject
+            );
+        });
+    }
+}
 
 /**
  * Representation of a city. Currently only builds a matrix of buildings,
- * but this class will allow to get information about the city structure 
+ * but this class will allow to get information about the city structure
  * and important points (intersection, streets, blocks, etc).
- * 
+ *
  */
 export class City {
     buildings: { body: CANNON.Body; object: THREE.Object3D }[] = [];
     buildingMaterial: CANNON.Material = new CANNON.Material('building');
-    config: CityConfig;
+    config: string[][];
+    buildingConfig: BuildingConfig = defaultBuildingConfig;
+    modelData: THREE.Object3D;
+    boxes: any[] = [];
 
-    constructor(config: CityConfig) {
+    constructor(modelData: THREE.Group, config: string[][]) {
         this.config = config;
+
+        this.modelData = modelData.getObjectByName('Building')!;
+        let buildingSize = getObjectSize(this.modelData);
+
+        this.buildingConfig = {
+            depth: buildingSize.x,
+            height: buildingSize.y,
+            width: buildingSize.z,
+        };
+
         this.buildCity();
     }
+
+    validateCityMap() {}
 
     genBuilding(
         depth: number,
@@ -45,11 +114,7 @@ export class City {
     ) {
         let x = startPosition.x + depth * sqCol;
         let y = startPosition.z + width * sqRow;
-        const buildPosition = new Vec3(
-            0,
-            this.config.buildingConfig.height / 4,
-            0
-        );
+        const buildPosition = new Vec3();
         buildPosition.x = x + depth / 2;
         buildPosition.z = y + width / 2;
 
@@ -59,7 +124,7 @@ export class City {
     }
 
     getStreetPos() {
-        const { depth, height, width } = this.config.buildingConfig;
+        const { depth, height, width } = this.buildingConfig;
 
         return this.buildings[
             randInt(0, this.buildings.length - 1)
@@ -69,66 +134,43 @@ export class City {
     }
 
     buildCity() {
-        const { rows, columns, squareRows, squareCols, streetWidth } =
-            this.config;
-        const { depth, width } = this.config.buildingConfig;
+        const { depth, height, width } = this.buildingConfig;
 
-        for (let row = 0; row < rows; row++) {
-            for (let col = 0; col < columns; col++) {
-                let startX =
-                    (squareRows * depth + streetWidth * 2) * col + streetWidth;
-                let startY =
-                    (squareCols * width + streetWidth * 2) * row + streetWidth;
-                const startPosition = new Vec3(startX, 0, startY);
-
-                for (let sqRow = 0; sqRow < squareRows; sqRow++) {
-                    if (sqRow == 0 || sqRow == squareRows - 1) {
-                        for (let sqCol = 0; sqCol < squareCols; sqCol++) {
-                            this.genBuilding(
-                                depth,
-                                width,
-                                startPosition,
-                                sqCol,
-                                sqRow
-                            );
-                        }
-                    } else {
-                        for (let sqCol of [0, squareCols - 1]) {
-                            this.genBuilding(
-                                depth,
-                                width,
-                                startPosition,
-                                sqCol,
-                                sqRow
-                            );
-                        }
-                    }
+        this.config.forEach((row, row_idx) => {
+            row.forEach((cell, col) => {
+                if (cell == '.') {
+                    this.buildBuilding(
+                        new Vec3(row_idx * depth, 0, col * width)
+                    );
                 }
-            }
-        }
+            });
+        });
     }
 
     buildBuilding(position: Vec3) {
+        const model = this.modelData;
+
         // Physics body
-        const { depth, height, width } = this.config.buildingConfig;
+        const { depth, height, width } = this.buildingConfig;
         const body = new CANNON.Body({
             type: CANNON.BODY_TYPES.STATIC,
             material: this.buildingMaterial,
             shape: new CANNON.Box(new Vec3(depth / 2, height / 2, width / 2)),
         });
 
-        const object = new THREE.Mesh(
-            new THREE.BoxGeometry(width, height, depth),
-            new THREE.MeshLambertMaterial({
-                color: 0xaa0000,
-            })
-        );
+        const object = model.clone(true);
 
-        object.castShadow = true;
-        object.receiveShadow = true;
+        object.traverse((node) => {
+            node.receiveShadow = true;
+            node.castShadow = true;
+        });
+
+        // const box = ;
+
+        this.boxes.push(new THREE.BoxHelper(object, 0xff0000));
 
         object.position.set(position.x, position.y, position.z);
-        body.position.set(position.x, position.y, position.z);
+        body.position.set(position.x, position.y + height / 2, position.z);
 
         this.buildings.push({
             body,
@@ -142,5 +184,6 @@ export class City {
             scene.add(object);
             object.receiveShadow = true;
         });
+        this.boxes.forEach((box) => scene.add(box));
     }
 }
