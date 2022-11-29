@@ -31,8 +31,17 @@ export class Ground {
             config.widht,
             config.heigth
         );
+        
+        // Credit: https://www.textures.com/download/3DScans0604/138015
+        const roadTexture = new THREE.TextureLoader().load(
+            'src/textures/road.jpg'
+        );
+        roadTexture.wrapS = THREE.RepeatWrapping;
+        roadTexture.wrapT = THREE.RepeatWrapping;
+        roadTexture.repeat.set(32, 32);
+
         const groundMat = new THREE.MeshLambertMaterial({
-            color: config.color,
+            map: roadTexture,
         });
 
         const groundMesh: THREE.Mesh = new THREE.Mesh(
