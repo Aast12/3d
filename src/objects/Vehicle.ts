@@ -11,6 +11,7 @@ export type WheelConfig = {
 };
 
 export type VehicleConfig = {
+    initialPosition: THREE.Vector3,
     mass: number;
     dimensions: { width: number; height: number; depth: number };
     centerOfMass: Vec3;
@@ -20,6 +21,7 @@ export type VehicleConfig = {
 };
 
 export const defaultVehicleConfig: VehicleConfig = {
+    initialPosition: new THREE.Vector3(0, 0, 0), 
     mass: 10,
     dimensions: { width: 2, height: 3, depth: 5 },
     centerOfMass: new Vec3(0, 2, 0),
@@ -77,7 +79,8 @@ export abstract class Vehicle {
             // new CANNON.Vec3(depth / 2, height / 2, width / 2)
         );
         const chassisBody = new CANNON.Body({ mass: this.config.mass });
-        chassisBody.position.set(-50, 10, 50);
+        const startPos = this.config.initialPosition;
+        chassisBody.position.set(startPos.x, startPos.y, startPos.z);
         chassisBody.addShape(chassisShape, centerOfMass);
         // chassisBody.position.set(0, 5, 0);
         // chassisBody.angularVelocity.set(0, 0.5, 0);
@@ -201,8 +204,8 @@ export abstract class Vehicle {
     }
 
     resetWheelForce() {
-        // this.vehicle.setWheelForce(0, 2);
-        // this.vehicle.setWheelForce(0, 3);
+        this.vehicle.setWheelForce(0, 2);
+        this.vehicle.setWheelForce(0, 3);
     }
 
     steer(direction: 'left' | 'right') {

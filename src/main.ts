@@ -9,6 +9,7 @@ import { Interactive } from './objects/Interactive';
 
 import { setup } from './setup';
 import { Environment } from './env/env';
+import { defaultVehicleConfig } from './objects/Vehicle';
 
 Keyboard.initialize();
 
@@ -23,10 +24,6 @@ const world = env.world;
 
 // Player bus construction
 
-const bus = await new BusLoader().getBusLoaded();
-
-bus.addToWorld(world, scene);
-
 // Init debugger
 const cannonDbg = CannonDebugger(scene, world, {});
 
@@ -40,14 +37,22 @@ const cannonDbg = CannonDebugger(scene, world, {});
 // });
 
 const city = await new CityLoader(defaultCityConfig).getCityLoaded();
+const { x, y } = city.startPoint;
+const initialPosition = city.getCellPosition(x, y);
+initialPosition.y = 10;
 
 const target = new Interactive({ depth: 10, width: 10, height: 15 }, () => {});
 target.addToWorld(world, scene);
 city.addToWorld(world, scene);
 
+const bus = await new BusLoader({
+    ...defaultVehicleConfig,
+    initialPosition,
+}).getBusLoaded();
+
+bus.addToWorld(world, scene);
+
 const chaseCam = new ChaseCam(bus.object, 20, new Vector3(0, 10, 0));
-
-
 
 env.timer.start();
 

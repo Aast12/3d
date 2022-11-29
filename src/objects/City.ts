@@ -8,12 +8,12 @@ import { getObjectSize } from '../utils/math';
 
 export const defaultCityConfig = [
     ['.', '.', '.', '.', '.', '.', '.', '.', '.'],
-    ['.', 'W', 'W', 'W', 'W', 'W', 'W', 'W', '.'],
-    ['.', 'W', '.', '.', 'W', '.', '.', 'W', '.'],
-    ['.', 'W', '.', '.', 'W', 'W', 'W', 'W', '.'],
-    ['.', 'W', 'W', '.', 'W', '.', '.', 'W', '.'],
-    ['.', '.', 'W', 'W', 'W', 'W', 'W', 'S', '.'],
-    ['.', '.', 'W', '.', '.', '.', '.', 'W', '.'],
+    ['.', 'W', '.', 'W', 'W', 'W', 'W', 'W', '.'],
+    ['W', 'W', 'W', 'W', 'W', 'W', '.', 'W', 'W'],
+    ['W', '.', 'W', 'W', 'W', '.', '.', '.', 'W'],
+    ['W', 'W', 'W', 'W', 'W', 'W', '.', 'W', 'W'],
+    ['W', 'W', '.', 'W', 'W', 'W', 'W', 'S', '.'],
+    ['.', '.', '.', '.', '.', '.', '.', 'W', '.'],
 ];
 
 const defaultBuildingConfig = {
@@ -236,7 +236,7 @@ export class City {
     }
 
     buildCity() {
-        const { depth, height, width } = this.buildingConfig;
+        const { depth, width } = this.buildingConfig;
 
         this.config.forEach((row, row_idx) => {
             row.forEach((cell, col) => {
@@ -250,13 +250,22 @@ export class City {
                             (prev, curr) => prev + curr,
                             0
                         );
-                        // this.map[row_idx][col] = CellType.Building;
+
                         switch (count) {
                             case 1: {
+                                let rotation = Math.PI / 2;
+                                const side = surroundingStreet.indexOf(1);
+                                if (side == 0) rotation *= 1;
+                                if (side == 1) rotation *= 0;
+                                if (side == 2) rotation *= -1;
+                                if (side == 3) rotation *= 2;
+
                                 this.buildBuilding(
                                     BuildingType.OneSide,
-                                    new Vec3(row_idx * depth, 0, col * width)
+                                    new Vec3(row_idx * depth, 0, col * width),
+                                    rotation
                                 );
+                                break;
                             }
                             case 2: {
                                 for (let i = 0; i < 4; i++) {
@@ -265,35 +274,56 @@ export class City {
                                         surroundingStreet[i] &&
                                         surroundingStreet[next]
                                     ) {
+                                        let rotation = 0;
+                                        if (i == 0) rotation = 0;
+                                        if (i == 1) rotation = -Math.PI / 2;
+                                        if (i == 2) rotation = Math.PI;
+                                        if (i == 3) rotation = Math.PI / 2;
+
                                         this.buildBuilding(
                                             BuildingType.Corner,
                                             new Vec3(
                                                 row_idx * depth,
                                                 0,
                                                 col * width
-                                            )
+                                            ),
+                                            rotation
                                         );
                                         break;
                                     }
 
                                     if (i == 3) {
+                                        const rotation = surroundingStreet[1]
+                                            ? 0
+                                            : Math.PI / 2;
+
                                         this.buildBuilding(
                                             BuildingType.TwoSides,
                                             new Vec3(
                                                 row_idx * depth,
                                                 0,
                                                 col * width
-                                            )
+                                            ),
+                                            rotation
                                         );
                                     }
                                 }
                                 break;
                             }
                             case 3: {
+                                let rotation = Math.PI / 2;
+                                const side = surroundingStreet.indexOf(0);
+                                if (side == 0) rotation *= -1;
+                                if (side == 1) rotation *= 2;
+                                if (side == 2) rotation *= 1;
+                                if (side == 3) rotation *= 0;
+
                                 this.buildBuilding(
                                     BuildingType.SingleCorner,
-                                    new Vec3(row_idx * depth, 0, col * width)
+                                    new Vec3(row_idx * depth, 0, col * width),
+                                    rotation
                                 );
+                                break;
                             }
                         }
 
@@ -326,12 +356,12 @@ export class City {
             node.castShadow = true;
         });
 
+        if (rotation) {
+            object.rotateY(rotation);
+        }
+
         object.position.set(position.x, position.y, position.z);
         body.position.set(position.x, position.y + height / 2, position.z);
-
-        if (rotation) {
-            object.rotateX(rotation);
-        }
 
         this.buildings.push({
             body,
