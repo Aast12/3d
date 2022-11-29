@@ -13,7 +13,7 @@ const game = new Game(scene, renderer, {
     busConfig: defaultVehicleConfig,
     cityMapConfig: defaultCityMapConfig,
     envConfig: {
-        dayDuration: 5,
+        dayDuration: 10,
     },
     debug: false,
 });

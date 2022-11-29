@@ -11,7 +11,7 @@ export type WheelConfig = {
 };
 
 export type VehicleConfig = {
-    initialPosition: THREE.Vector3,
+    initialPosition: THREE.Vector3;
     mass: number;
     dimensions: { width: number; height: number; depth: number };
     centerOfMass: Vec3;
@@ -21,7 +21,7 @@ export type VehicleConfig = {
 };
 
 export const defaultVehicleConfig: VehicleConfig = {
-    initialPosition: new THREE.Vector3(0, 0, 0), 
+    initialPosition: new THREE.Vector3(0, 0, 0),
     mass: 10,
     dimensions: { width: 2, height: 3, depth: 5 },
     centerOfMass: new Vec3(0, 2, 0),
@@ -133,10 +133,7 @@ export abstract class Vehicle {
     }
 
     buildWheels() {
-        const { x: depth, y: _height, z: width } = getObjectSize(this.object);
-        let wheels = this.object.children.filter((obj) =>
-            obj.name.includes('Wheel')
-        );
+        const { y: _height } = getObjectSize(this.object);
 
         let flWheel = this.object.getObjectByName('Wheel_TL')!;
         let frWheel = this.object.getObjectByName('Wheel_TR')!;

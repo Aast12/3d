@@ -13,10 +13,8 @@ export class Ground {
     private groundMesh: THREE.Mesh;
     private groundBody: CANNON.Body;
     private wheelContactMaterial: CANNON.ContactMaterial;
-    private debug: boolean;
 
-    constructor(debug: boolean = false) {
-        this.debug = debug;
+    constructor() {
         this.groundMesh = this.buildGroundMesh(groundDefaultConfig);
         this.groundBody = this.buildGrounBody();
         this.wheelContactMaterial = this.buildWheelContactMaterial();

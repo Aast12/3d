@@ -4,16 +4,10 @@ import { WebGLRenderer } from 'three';
 import { randInt } from 'three/src/math/MathUtils';
 import { Environment, EnvironmentConfig } from './env/env';
 import { Bus, BusLoader } from './objects/Bus';
-import {
-    City,
-    CityLoader,
-    CityMapConfig,
-    defaultCityMapConfig,
-    Position,
-} from './objects/City';
+import { City, CityLoader, CityMapConfig, Position } from './objects/City';
 import { Interactive } from './objects/Interactive';
 import { Passenger } from './objects/Passenger';
-import { defaultVehicleConfig, VehicleConfig } from './objects/Vehicle';
+import { VehicleConfig } from './objects/Vehicle';
 import { ChaseCam } from './utils/ChaseCam';
 import { Keyboard } from './utils/keyboard';
 

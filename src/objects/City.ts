@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { Vec3 } from 'cannon-es';
-import { Vector3 } from 'three';
-import { randInt } from 'three/src/math/MathUtils';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { getObjectSize } from '../utils/math';
 
