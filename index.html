@@ -7,7 +7,7 @@
         <title>Graphics</title>
     </head>
     <body>
-        <div class="full" id="tutorial">
+        <div class="full" id="tutorial" hidden>
             <h1>Bus Maze</h1>
 
             <div>
@@ -32,6 +32,15 @@
         <div id="info-container" hidden></div>
 
         <div id="app"></div>
+        <canvas id="mapmaker" width="600" height="600"></canvas>
+        <div id="mapmaker-helper">
+            Crea tu mapa:
+            <button id="paint-street">Pinta calles</button>
+            <button id="paint-building">Remueve calles</button>
+            <button id="paint-start">Punto de inicio</button>
+            <button id="finish-map">Listo</button>
+
+        </div>
         <script type="module" src="/src/main.ts"></script>
     </body>
 </html>

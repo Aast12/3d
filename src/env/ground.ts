@@ -38,7 +38,7 @@ export class Ground {
         );
         roadTexture.wrapS = THREE.RepeatWrapping;
         roadTexture.wrapT = THREE.RepeatWrapping;
-        roadTexture.repeat.set(32, 32);
+        roadTexture.repeat.set(16, 16);
 
         const groundMat = new THREE.MeshLambertMaterial({
             map: roadTexture,

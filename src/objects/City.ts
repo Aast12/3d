@@ -30,7 +30,7 @@ export type BuildingConfig = {
     depth: number;
 };
 
-enum CellType {
+export enum CellType {
     Building = '.',
     RawStreet = 'V',
     Street = 'W',

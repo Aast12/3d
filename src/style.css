@@ -1,7 +1,14 @@
 body {
     margin: 0;
+    overflow-y: hidden;
+    background-color: black;
     padding: 0;
     font-family: 'Courier New', Courier, monospace;
+}
+
+#mapmaker-helper {
+    color: white;
+    padding: 1em;
 }
 
 .full {
@@ -50,4 +57,12 @@ body {
 .btn:hover {
     background-color: white;
     color: black;
+}
+
+#mapmaker {
+    /* position: relative; */
+    /* background-color: green; */
+    padding: 0 auto;
+    /* width: 100vw;
+    height: 100vh; */
 }
